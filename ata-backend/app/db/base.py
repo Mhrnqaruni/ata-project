@@ -29,3 +29,13 @@ from .models.generation_models import Generation
 # aware of the new `users` table, allowing it to correctly generate the
 # database migration script for creating the table and linking foreign keys to it.
 from .models.user_model import User
+
+# --- [QUIZ SYSTEM MODELS] ---
+# Import all Quiz system models for Alembic auto-detection
+from .models.quiz_models import (
+    Quiz,
+    QuizQuestion,
+    QuizSession,
+    QuizParticipant,
+    QuizResponse
+)
