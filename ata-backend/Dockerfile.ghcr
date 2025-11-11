@@ -1,0 +1,65 @@
+# Alternative Dockerfile using GitHub Container Registry instead of Docker Hub
+# Use this if Docker Hub has persistent issues
+
+# ---- STAGE 1: BUILDER ----
+FROM ghcr.io/docker/library/python:3.11-bookworm as builder
+
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /usr/src/app
+
+RUN pip install --upgrade pip
+
+COPY requirements.txt .
+
+RUN pip wheel --no-cache-dir --wheel-dir /usr/src/app/wheels -r requirements.txt
+
+
+# ---- STAGE 2: FINAL PRODUCTION IMAGE ----
+FROM ghcr.io/docker/library/python:3.11-slim-bookworm
+
+WORKDIR /usr/src/app
+
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+USER root
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    tesseract-ocr \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libpq5 \
+    libreoffice \
+    libreoffice-writer \
+    fonts-liberation \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN useradd --create-home appuser
+
+COPY --from=builder /usr/src/app/wheels /wheels
+
+COPY ./app ./app
+COPY ./Books ./Books
+COPY alembic.ini .
+COPY ./alembic ./alembic
+
+RUN pip install --no-cache /wheels/*
+
+RUN mkdir -p /usr/src/app/assessment_uploads
+
+RUN chown -R appuser:appuser /usr/src/app
+
+USER appuser
+
+EXPOSE 8080
+
+CMD ["sh", "-c", "alembic upgrade head && exec gunicorn -k uvicorn.workers.UvicornWorker -w 4 -b 0.0.0.0:${PORT:-8080} app.main:app"]

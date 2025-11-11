@@ -1,0 +1,50 @@
+# FastAPI Application & Server
+fastapi
+pydantic-settings
+gunicorn==22.0.0
+uvicorn[standard]==0.29.0
+
+# AI & Data Processing
+google-generativeai==0.7.2
+pandas
+Pillow
+
+# Document & File Handling
+PyMuPDF
+pytesseract
+python-docx
+fpdf2
+python-multipart
+openpyxl
+PyPDF2
+
+# Security & Utilities
+RestrictedPython==7.0
+python-dotenv
+
+# Testing Framework
+pytest
+
+# --- Database & Migrations ---
+# Use the pre-compiled binary for psycopg2 to avoid build issues in Docker.
+psycopg2-binary
+# SQLAlchemy is the ORM.
+sqlalchemy
+# Alembic is for database migrations.
+alembic
+# Asyncpg is a high-performance async driver that SQLAlchemy can use.
+asyncpg
+
+
+
+# --- NEW: Security & Authentication ---
+# For secure password hashing (uses bcrypt algorithm).
+bcrypt==4.0.1
+passlib[bcrypt]==1.7.4
+# For creating, signing, and decoding JSON Web Tokens (JWTs).
+python-jose[cryptography]
+# For robust email validation in Pydantic models.
+email-validator
+
+
+apscheduler

@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venvScriptsactivate)",
+      "Bash(uvicorn:*)",
+      "Bash(npm run dev:*)",
+      "Bash(venvScriptsactivate)",
+      "Bash(pip install:*)",
+      "Bash(python:*)",
+      "Bash(timeout 5)",
+      "Bash(timeout 3)",
+      "Bash(curl -s http://localhost:8000/health)",
+      "Bash(test -f \"c:\\Users\\User\\Desktop\\ATA Demo\\ata-project\\ata-backend\\.dockerignore\")",
+      "Bash(test -f \".env\")",
+      "Bash(timeout 10 bash -c 'until curl -s http://localhost:8000/health > /dev/null 2>&1; do sleep 1; done && echo \"\"Backend server is running\"\"')",
+      "Bash(git checkout -- app/services/database_helpers/class_student_repository_sql.py app/services/database_helpers/assessment_repository_sql.py app/services/database_helpers/chat_repository_sql.py app/services/database_helpers/generation_repository_sql.py)",
+      "Bash(timeout 5 bash -c 'sleep 3 && echo \"\"Server should have reloaded by now\"\"')",
+      "Bash(timeout 5 bash -c 'sleep 3 && echo \"\"Server should be reloading...\"\"')",
+      "Bash(timeout 8 bash -c 'sleep 5 && echo \"\"Server reload should be complete\"\"')",
+      "Bash(dir)",
+      "Bash(test -f \".dockerignore\")",
+      "Bash(test -f \".gitignore\")",
+      "Bash(git mv Dockerfile Dockerfile.backup)",
+      "Bash(git add -A)",
+      "Bash(git commit -m \"Disable Dockerfile to force Railway to use Nixpacks builder (bypasses Docker Hub 503 errors)\")",
+      "Bash(git push origin main)",
+      "Bash(git rm package.json package-lock.json)",
+      "Bash(git commit -m \"Remove Node.js files and configure Nixpacks for Python\n\n- Delete package.json and package-lock.json (not needed for Python backend)\n- Configure nixpacks.toml to explicitly use Python\n- Add system dependencies (tesseract, libreoffice) via aptPkgs\")",
+      "Bash(git commit -m \"Fix Nixpacks configuration - let it auto-handle pip installation\n\n- Remove custom install phase that was breaking pip\n- Keep only system dependencies (tesseract, libreoffice) \n- Let Nixpacks auto-detect Python and run pip install\")",
+      "Bash(git rm Procfile)",
+      "Bash(git commit -m \"Fix database migration timing - run at runtime not build time\n\n- Remove Procfile that was causing migrations during build phase\n- Database is only accessible at RUNTIME in Railway''s private network\n- nixpacks.toml start command already has migrations configured correctly\n- This fixes: ''could not translate host name postgres.railway.internal''\")",
+      "Bash(README.md)",
+      "Bash(git init:*)",
+      "Bash(git branch:*)",
+      "Bash(git remote add:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

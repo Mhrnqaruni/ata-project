@@ -1,0 +1,1785 @@
+Online access to your ActiveBook
+Thank you for buying this Edexcel International GCSE English A Student Book. It comes with three years’ access* to 
+ActiveBook – an online, digital version of your textbook. You can personalise your ActiveBook with notes, highlights 
+and links to your wider reading. It is perfect for supporting your coursework and revision activities. 
+* For new purchases only. If this access code has already been revealed, it may no longer be valid. If you have bought this textbook 
+second hand, the code may already have been used by the fi rst owner of the book.
+How to access your ActiveBook
+1
+Scratch the panel off with a coin to reveal your unique access code. Do not use a knife or other sharp object 
+as it may damage the code.
+2
+Go to www.pearsonactivelearn.com
+3
+If you already have an ActiveLearn Digital Services account (ActiveTeach or ActiveLearn), log in and click 
+‘I have a new access code’ in the top right of the screen.
+•  Type in the code above and select ‘Activate’.
+4
+If you do not have an ActiveLearn Digital Services account, click ‘Register’. It is free to do this.
+•  Type in the code above and select ‘Activate’.
+•  Simply follow the instructions on screen to register.
+Important information
+• The access code can only be used once.
+• Please activate your access code as soon as possible, as it does have a ‘use by date’. If your code has expired 
+when you enter it, please contact our ActiveLearn support site at digital.support@pearson.com 
+• The ActiveBook will be valid for three years upon activation.
+Getting help
+• To check that you will be able to access an ActiveBook, go to www.pearsonactivelearn.com/support 
+and choose ‘Will ActiveLearn Digital Service work on my computer?’ then select ‘Run system check’.
+• If you have any questions about accessing your ActiveBook, please contact our ActiveLearn support site at 
+www.pearsonactivelearn.com/support
+CONFIDENTIAL: Uncorrected WIP proof, NOT for circulation or distribution. © Pearson Education.
+
+EDEXCEL INTERNATIONAL GCSE (9 –1)
+ENGLISH LANGUAGE A
+Student Book
+Roger Addison, 
+Samantha Brunner 
+David Foster 
+Peter Inson 
+Robert O’Brien 
+Pam Taylor 
+Manjari Tennakoon
+CONFIDENTIAL: Uncorrected WIP proof, NOT for circulation or distribution. © Pearson Education.
+
+Published by Pearson Education Limited, 80 Strand, London, WC2R 
+0RL.
+www.pearsonglobalschools.com
+Copies of official specifications for all Pearson qualifications may be 
+found on the website:  
+www.qualifications.pearson.com
+Text © Pearson Education Limited 2016
+Edited by Lauren Bickley, Fleur Frederick and Andrew Lowe
+Typeset by Phoenix Photosetting, Chatham, Kent
+Original illustrations © Pearson Education Limited 2016
+Cover design by Pearson Education Limited
+The rights of Roger Addison, Samantha Brunner, David Foster, Peter  
+Inson, Robert O’Brien, Pam Taylor and Manjari Tennakoon to be  
+identified as authors of this work have been asserted by them in  
+accordance with the Copyright, Designs and Patents Act 1988.
+First published 2016
+19 18 17 16
+10 9 8 7 6 5 4 3 2 1
+British Library Cataloguing in Publication Data
+A catalogue record for this book is available from the British Library
+ISBN 978 0 435 18256 4
+Copyright notice
+All rights reserved. No part of this publication may be reproduced in 
+any form or by any means (including photocopying or storing it in any 
+medium by electronic means and whether or not transiently or inciden-
+tally to some other use of this publication) without the written permission 
+of the copyright owner, except in accordance with the provisions of the 
+Copyright, Designs and Patents Act 1988 or under the terms of a licence 
+issued by the Copyright Licensing Agency, Saffron House, 6 –10 Kirby 
+Street, London EC1N 8TS (www.cla.co.uk). Applications for the copy-
+right owner’s written permission should be addressed to the publisher.
+Printed in ______
+Acknowledgements
+The author and publisher would like to thank the following individuals 
+and organisations for permission to reproduce photographs:
+(Key: b-bottom; c-centre; l-left; r-right; t-top)
+__________
+All other images © Pearson Education Limited
+We are grateful to the following for permission to reproduce copyright 
+material:
+___________
+Every effort has been made to contact copyright holders of material 
+reproduced in this book. Any omissions will be rectified in subsequent 
+printings if notice is given to the publishers.
+A note from the publisher
+In order to ensure that this resource offers high-quality support for 
+the associated Pearson qualification, it has been through a review 
+process by the awarding body. This process confirms that this re-
+source fully covers the teaching and learning content of the specifica-
+tion or part of a specification at which it is aimed. It also confirms that 
+it demonstrates an appropriate balance between the development of 
+subject skills, knowledge and understanding, in addition to prepara-
+tion for assessment.
+Endorsement does not cover any guidance on assessment activities 
+or processes (e.g. practice questions or advice on how to answer 
+assessment questions), included in the resource nor does it pre-
+scribe any particular approach to the teaching or delivery of a related 
+course.
+While the publishers have made every attempt to ensure that advice 
+on the qualification and its assessment is accurate, the official spec-
+ification and associated assessment guidance materials are the only 
+authoritative source of information and should always be referred to 
+for definitive guidance.
+Pearson examiners have not contributed to any sections in this re-
+source relevant to examination papers for which they have responsi-
+bility.
+Examiners will not use endorsed resources as a source of material for 
+any assessment set by Pearson. 
+Endorsement of a resource does not mean that the resource is 
+required to achieve this Pearson qualification, nor does it mean that it 
+is the only suitable material available to support the qualification, and 
+any resource lists produced by the awarding body shall include this 
+and other appropriate resources.
+CONFIDENTIAL: Uncorrected WIP proof, NOT for circulation or distribution. © Pearson Education.
+
+CONTENTS
+iii
+COURSE STRUCTURE
+PREFACE
+01 READING SKILLS
+02 WRITING SKILLS
+03 PAPER 1
+04 PAPER 2
+05 PAPER 3
+EXAM PREPARATIONS 
+GLOSSARY
+INDEX
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+CONFIDENTIAL: Uncorrected WIP proof, NOT for circulation or distribution. © Pearson Education.
+
+COURSE STRUCTURE
+iv
+  2 READING 
+SKILLS
+ 24 WRITING 
+SKILLS
+ 56 PAPER 1: NON- 
+FICTION AND 
+TRANSACTIONAL 
+WRITING
+  4 TEXT ANALYSIS
+  4   ◼   SKIMMING FOR THE MAIN 
+IDEA 
+  6   ◼   EXPLICIT AND IMPLICIT 
+MEANING
+  8   ◼   POINT, EVIDENCE, EXPLAIN
+ 10   ◼   EVALUATING A TEXT
+ 16 USE OF LANGUAGE
+ 16   ◼   WORD CLASSES
+ 18   ◼   CONNOTATIONS
+ 20   ◼   DIFFERENT SENTENCE 
+TYPES
+ 22   ◼   SENTENCES FOR EFFECTS
+ 26 VOCABULARY
+ 26   ◼   CHOOSING THE RIGHT 
+VOCABULARY
+ 28   ◼   VOCABULARY FOR EFFECT
+ 30   ◼   LANGUAGE FOR DIFFERENT 
+EFFECTS
+ 32   ◼   WHY OUR CHOICES MATTER
+ 34 SENTENCES
+ 34   ◼   SENTENCE TYPES
+ 36   ◼   OPENING SENTENCES
+ 38   ◼   SENTENCES FOR EFFECTS
+ 40   ◼   SENTENCE PURPOSE
+ 42 STRUCTURE
+ 42   ◼   PRINCIPLES OF 
+STRUCTURE
+ 44   ◼   PARAGRAPHING FOR 
+EFFECT
+ 46   ◼   LINKING IDEAS
+ 48 PUNCTUATION AND 
+SPELLING
+ 48   ◼   ENDING A SENTENCE
+ 49   ◼   COMMAS
+ 50   ◼   APOSTROPHES 
+ 51   ◼   COLONS, SEMI-COLONS, 
+DASHES, BRACKETS, 
+ELLIPSES
+ 52   ◼   COMMON SPELLING 
+ERRORS
+ 53   ◼   PROOF-READING, 
+CHECKING AND EDITING
+ 54   ◼   IMPROVE YOUR WRITING
+ 58 NON-FICTION TEXTS
+ 58   ◼   TYPES OF TEXT
+ 78   ◼    IDENTIFYING THE WRITER’S 
+PERSPECTIVE
+ 81   ◼   AUDIENCE AND PURPOSE
+ 83   ◼    LANGUAGE FOR DIFFERENT 
+EFFECTS
+ 87   ◼    FACT, OPINION AND EXPERT 
+ADVICE
+ 89   ◼   THE STRUCTURE OF A TEXT
+ 91   ◼   UNSEEN TEXTS
+ 95   ◼   PUTTING IT INTO PRACTICE
+ 99 TEXT ANTHOLOGY: 
+NON-FICTION
+ 99   ◼    ‘THE DANGER OF A SINGLE 
+STORY’ – CHIMAMANDA 
+NGOZI ADICHIE
+106   ◼    A PASSAGE TO AFRICA – 
+GEORGE ALAGIAH
+111   ◼    THE EXPLORER’S DAUGH-
+TER – KARI HERBERT
+116   ◼    EXPLORERS, OR BOYS 
+MESSING ABOUT – STEVEN 
+MORRIS
+120   ◼    BETWEEN A ROCK AND A 
+HARD PLACE – ARON RAL-
+STON
+125   ◼    ‘YOUNG AND DYSLEXIC? 
+YOU’VE GOT IT GOING ON’ – 
+BENJAMIN ZEPHANIAH
+131   ◼    A GAME OF POLO WITH A 
+HEADLESS GOAT – EMMA 
+LEVINE
+CONFIDENTIAL: Uncorrected WIP proof, NOT for circulation or distribution. © Pearson Education.
+
+COURSE STRUCTURE
+v
+336 EXAM 
+PREPARATION
+338 PLANNING 
+YOUR ANSWERS
+136   ◼    BEYOND THE SKY AND 
+EARTH: A JOURNEY INTO 
+BHUTAN – JAMIE ZEPPA
+144   ◼    H IS FOR HAWK – HELEN 
+MACDONALD
+150   ◼    CHINESE CINDERELLA – 
+ADELINE YEN MAH
+155 COMPARING TEXTS
+155   ◼    IDENTIFYING KEY  
+INFORMATION
+157   ◼   ANALYSING THE TEXTS
+165   ◼   COMPARISONS
+169   ◼   SELECTING EVIDENCE
+171   ◼   PUTTING IT INTO PRACTICE
+175 TRANSACTIONAL 
+WRITING
+175   ◼    AN INTRODUCTION TO 
+TRANSACTIONAL WRITING
+177   ◼    WRITING FOR A PURPOSE: 
+INFORM, EXPLAIN, REVIEW
+181   ◼    WRITING FOR A PURPOSE: 
+ARGUE, PERSUADE, ADVISE
+185   ◼   WRITING FOR AN AUDIENCE
+189   ◼   FORM
+195   ◼   VOCABULARY FOR EFFECT
+199   ◼   SENTENCES FOR EFFECT
+202   ◼    OPENINGS AND CONCLU-
+SIONS
+204   ◼   IDEAS AND PLANNING
+206   ◼   PUTTING IT INTO PRACTICE
+210 PAPER 2: 
+POETRY AND 
+PROSE TEXTS 
+AND IMAGINA-
+TIVE WRITING
+212 READING SKILLS: 
+FICTION TEXTS
+212   ◼   TYPES OF TEXT
+215   ◼   FIGURATIVE LANGUAGE
+219   ◼    CREATING CHARACTER,  
+ATMOSPHERE AND  
+EMOTION
+223   ◼   NARRATIVE VOICE
+225   ◼   STRUCTURE 
+233 TEXT ANTHOLOGY: 
+FICTION
+233   ◼    ‘DISABLED’ – WILFRED 
+OWEN
+238   ◼   ‘OUT, OUT’ – ROBERT FROST
+242   ◼    ‘AN UNKNOWN GIRL’ –  
+MONIZA ALVI
+246   ◼    THE BRIGHT LIGHTS OF  
+SARAJEVO – TONY  
+HARRISON
+252   ◼    ‘STILL I RISE’ – MAYA  
+ANGELOU
+260   ◼    THE STORY OF AN HOUR – 
+KATE CHOPIN
+265   ◼    THE NECKLACE – GUY DE 
+MAUPASSANT
+274   ◼    ‘SIGNIFICANT CIGARETTES’ 
+(FROM THE ROAD HOME) – 
+ROSE TREMAIN
+280   ◼    ‘WHISTLE AND I’LL COME TO 
+YOU’ (FROM THE WOMAN IN 
+BLACK) – SUSAN HILL
+288   ◼   NIGHT – ALICE MUNRO
+320 PAPER 3: 
+POETRY AND 
+PROSE TEXTS 
+AND IMAGINA-
+TIVE WRITING
+233 [TO BE CONFIRMED]
+322   ◼   PAPER 3 COURSEWORK
+324   ◼    ASSIGNMENT A: POETRY 
+AND PROSE TEXTS
+330   ◼    ASSIGNMENT B:  
+IMAGINATIVE WRITING
+299 IMAGINATIVE 
+WRITING
+299   ◼    OVERVIEW OF IMAGINATIVE 
+WRITING
+301   ◼   GENERATING IDEAS
+303   ◼   PLOT
+304   ◼   STRUCTURE
+306   ◼   NARRATION
+308   ◼   CHARACTERS
+310   ◼    MONOLOGUES AND  
+DIALOGUES
+312   ◼   DESCRIPTIVE WRITING
+314   ◼   VOCABULARY FOR EFFECT
+316   ◼   SENTENCES FOR EFFECT
+318   ◼    PUTTING IT INTO PRACTICE 
+– SAMPLE QUESTIONS
+CONFIDENTIAL: Uncorrected WIP proof, NOT for circulation or distribution. © Pearson Education.
+
+INTRODUCTION
+vi
+INTRODUCTION TO THE COURSE
+This book has been written to help all students taking the Edexcel International GCSE English Language A (4EA1) 
+(first examination June 2018). It is designed to enable them to achieve their full potential during the course and in 
+the examination. It is written for both students and teachers. There are two specifications for the International GCSE 
+examination, English Language A (4EA1) and English Language B (4EB1). Specification A of the International GCSE 
+has two routes, one assessed entirely through examination and one that includes coursework. This book will prepare 
+students for all aspects of the course. 
+STUDENTS
+How will this book support you? We hope you will find it:
+ 
+◼
+useful in terms of developing your skills and techniques fully for the Edexcel International GCSE in English Language
+ 
+◼
+a helpful guide to your study of the selected texts from the Edexcel Anthology for the International GCSE
+ 
+◼
+a support in preparing for unseen passages (all specifications).
+This book will also assist in writing the coursework and planning revision. 
+STUDENTS AND TEACHERS
+The book goes through the requirements for specification A, with explanations, suggestions and questions. It also 
+includes a large number of practical activities and examples. These are for practice and will also help you to appreciate 
+how really good answers are written and structured.
+HINT
+Remember to plan your work. The sooner you organise yourself and your ideas, the easier you will find your preparation for every section of 
+the examination! This book aims to give you confidence by improving your skills and techniques. You know you can succeed. 
+KNOW YOUR TEXTS
+It is very important to make sure that you have a really good grasp of the selected fiction and non-fiction passages and 
+poems from Section A and Section B of the Anthology. Every year, examiners read International GCSE scripts in which 
+the candidates write in a way that shows that they do not understand, or have not prepared carefully, the texts that are 
+set. Use the relevant sections from this book to strengthen your knowledge of the texts.
+USE YOUR SOURCES
+An important part of Paper 1 is the testing of your ability to think on your feet when confronted with unfamiliar (unseen) 
+prose passages, to show that you have all understood and responded to these and that you can base your own writing 
+on the ideas you have met. Work through the ‘Types of text’ chapter in order to ensure that you are ready to read and 
+analyse an unseen passage in Paper 1. 
+KNOW AND APPLY PROPERLY YOUR TECHNICAL TERMS
+Like other subjects, English has a number of technical terms which you may need to use. It is important that you know 
+how to use the correct term and that you can spell it. Refer to the subject vocabulary within the margins or the Glossary 
+on pages 192–197 to help you. Even more important is that you know how to explain why a particular device is used, 
+looking at the writer’s intentions. In the exams, you will always be given credit for explaining the effects of a word or 
+phrase, whether or not you use the technical terms, and accurate use of the right terms will make your writing more 
+fluent and concise. 
+HINT
+Make lists of technical terms, write out what you think they mean, then check your definitions against the glossary at the back or the lists of 
+subject vocabulary in the margins. 
+CONFIDENTIAL: Uncorrected WIP proof, NOT for circulation or distribution. © Pearson Education.
+
+INTRODUCTION
+vii
+HINT
+Use a system such as different coloured cards or sticky notes to put down the key points on each text.
+EXPLORE HOW TO IMPROVE THE STRUCTURE AND ORGANISATION OF YOUR 
+ANSWERS
+If you look closely at the model answers that are given at various points throughout this book, this will help you to write 
+detailed, successful responses. 
+PRESENTING YOUR WORK EFFECTIVELY
+How you set out your own writing is important for various reasons. Get into the habit of producing writing that is:
+ 
+◼
+neat, regular and clear
+ 
+◼
+spelt accurately
+ 
+◼
+correctly punctuated
+ 
+◼
+set out in clear paragraphs.
+Such strengths in your writing will bring many advantages, both in the examination and afterwards.
+ 
+◼
+Examiners will form a positive impression of your work.
+ 
+◼
+They will be able to read your answer easily; they will not be able to do so if your handwriting is poor or if it is not 
+written in proper sentences.
+ 
+◼
+How you write, as well as what you write, will be considered when your work is marked.
+ 
+◼
+Good writing is useful for applications for jobs or college courses.
+ 
+◼
+Many jobs need people who can write clearly, accurately and precisely.
+KNOWING YOUR OWN STRENGTHS AND WEAKNESSES
+It is an excellent idea to keep a checklist of your most common errors in spelling, punctuation and grammar, since these 
+are assessed in all specifications. When you receive a piece of work back from your teacher, read it through and make 
+sure you understand any comments or corrections.
+ 
+◼
+Keep a sheet of file paper at the front or back of your work file and write the correct spelling of words you have 
+misspelt on it.
+ 
+◼
+Refer to this before handing in your work, to make sure you have not made the same mistakes.
+ 
+◼
+Take some time to learn the spellings and other points on your list.
+▼ REMEMBER!
+ 
+◼
+Make the best use of lesson time.
+ 
+◼
+Make sure you know what you have to do in class.
+ 
+◼
+Be sure you understand what the homework is.
+ 
+◼
+For Coursework route: check what your coursework 
+assignments are.
+▼ TAKE PART!
+ 
+◼
+Ask questions in class.
+ 
+◼
+Answer questions in class.
+ 
+◼
+Contribute to discussion.
+ 
+◼
+Be fully involved in group work. Don’t let others do all the 
+talking!
+▼ MAKE NOTES!
+ 
+◼
+Write down key points from: teachers; books you read; 
+class work; articles or worksheets.
+ 
+◼
+For International GCSE Specification A or the Certificate: 
+annotate your copy of the Anthology carefully.
+ 
+◼
+Add points missed onto the end of your homework or 
+practice questions when they are returned to you.
+▼ KEEP UP!
+ 
+◼
+Hand work in on time.
+ 
+◼
+Keep files or exercise books up to date.
+ 
+◼
+Make sure you do not get behind with your homework.
+ 
+◼
+Do not leave work unfinished. It is always difficult to remember 
+what has been missed unless you amend it at the time.
+ 
+◼
+Check off completed work in your records
+▼ SEEK HELP!
+ 
+◼
+Ask teachers to explain if you are unsure.
+ 
+◼
+Discuss with friends.
+ 
+◼
+Look things up using dictionaries, encyclopaedias and the 
+Internet.
+▼ BE ORGANISED!
+ 
+◼
+Have clear systems.
+ 
+◼
+Present work neatly.
+ 
+◼
+Set yourself targets.
+ 
+◼
+Stick to deadlines.
+CONFIDENTIAL: Uncorrected WIP proof, NOT for circulation or distribution. © Pearson Education.
+
+ABOUT THIS BOOK
+viii
+ABOUT THIS BOOK
+This book is written for students following the Edexcel International GCSE (9–1) English Language A specification. This 
+Student Book covers both years of the course. 
+The course has been structured so that teaching and learning can take place in any order, both in the classroom and for 
+independent learning. The book contains five chapters: Reading Skills, Writing Skills, Paper 1, Paper 2 and Paper 3. 
+The Reading Skills and Writing Skills chapters cover fundamental areas of these two key areas of English Language. 
+They build on and reinforce what students already know and develop essential skills that will allow them to succeed at 
+3
+2
+TEXT ANALYSIS SKIMMING FOR THE MAIN IDEA OR THEME
+TEXT ANALYSIS SKIMMING FOR THE MAIN IDEA OR THEME
+It can be difficult to know where to start when approaching a text 
+for the first time. To be confident in handling new texts, you need 
+a methodical approach that allows you to understand the main 
+ideas that are being communicated. 
+Skimming and scanning are two important reading techniques. 
+They are often confused with one another but they are very 
+different skills, though both help you to achieve the same aim: to 
+read more quickly and effectively. 
+LESSON OBJECTIVES
+SKIMMING AND SCANNING
+▶
+This lesson will help you to
+◼   understand the main ideas 
+that a writer is communicating
+◼   summarise the key points of a 
+text quickly
+◼   build confidence in  
+independent reading 
+SKIMMING
+This is useful when you want to get a general idea of what a text is about in 
+a short space of time. It means looking through material quickly for a sense 
+of the topic and the ideas and information being conveyed. When you skim, 
+you read through an article three to four times faster than when you read 
+each word. 
+WHEN SHOULD I SKIM? 
+◼   When reading non-fiction texts
+◼   When you have a lot to read in a short space of time
+◼   When revising topics to identify key information
+◼   To locate and identify reliable information when researching a topic
+◼   To identify what information is not relevant when researching a topic
+◼   When you already have some background information about a
+particular topic and want to find out something new
+SCANNING
+Scanning refers to reading through material to find specific information. 
+When you scan, you run your eyes over information to pull out specific 
+words, phrases, or information. You may not be aware of it but you scan 
+many types of material in your daily life, from the television guide to the 
+football results in the newspaper.
+WHEN SHOULD I SCAN?  
+◼   When looking for specific pieces of information quickly
+◼   To locate a relevant quotation or section in a literature text
+TEST YOURSELF!
+SKIMMING OR SCANNING? 
+Read the following examples and identify which describes the process of 
+skimming, and which describes scanning.  
+1  You flick through a financial report to find a particular set of data. 
+2  You quickly go through a twenty-page report in a few minutes, and 
+determine the overall subject, tone, and a few key points. 
+3  You pick up a newspaper at a coffee shop, look over the first few pages, 
+and gather some general information about the events happening in 
+the world. 
+4  You open a local newspaper, find the section advertising rooms for rent, 
+and then mark a few advertisements in your desired location within your 
+price range.
+KEY POINTS
+What you read is more important than 
+what you leave out.
+SKIMMING AND SKIPPING
+SKIMMING OR SCANNING? 
+To skim effectively, you don’t read everything – you must skip, too. So what 
+material should you read and what should you leave out? These reading 
+strategies for active reading should help you:
+1  Highlight key points.
+2  Consider each paragraph by rephrasing the first point of each in your      
+own words.
+3  Underline any unfamiliar words. Can you use the context of the sentence to 
+help you establish their meaning? If not, use a dictionary to help you. 
+STRATEGIES FOR SKIMMING 
+Read the first sentences of each paragraph (this is called the topic 
+sentence) – this will give you a good sense of the ideas and structure of 
+the text.
+Read the first and last paragraphs. 
+Some pieces of writing have headings and subheadings. These are a 
+useful guide to the information being communicated. 
+STRATEGIES FOR SCANNING 
+For scanning to be successful, you need to be sure of your purpose, ie 
+what information you are looking for, before you begin. 
+You should consider the structure of the text. Is it arranged alphabetically, 
+by category, chronologically (in time order) or in another way? 
+You can use your index finger to help you to identify key information, for 
+example, a train or bus time. Move it down the text with your eyes to 
+maintain focus.
+Te resersperum fac-
+cumqui ra aut enihit 
+diatquae sumet, eatin es 
+endam quia aceptatat-
+ur? Mo ex etur?
+Otatet fuga. Cate volor-
+atio molorem cum, qui 
+voluptam fuga. Ximolut 
+aturio. Itat voluptae do-
+lupit quatur alitionsedit
+Easy to understand, 
+core points to be taken 
+away from sections or 
+texts.
+Chapters and Units are 
+carefully tailored to ad-
+dress key assessment 
+objectives central to the 
+course.
+CONFIDENTIAL: Uncorrected WIP proof, NOT for circulation or distribution. © Pearson Education.
+
+ABOUT THIS BOOK
+ix
+9
+8
+LITERARY HERITAGE
+ENGLISH LITERATURE
+LITERARY HERITAGE
+ENGLISH LITERATURE
+Lady Montague is:
+◼   the mother of Romeo
+◼   so full of grief after 
+Romeo’s banishment that she 
+dies.
+Benvolio is:
+◼    a good friend of Romeo 
+and his cousin
+◼    a different kind of man 
+from Mercutio and Tybalt – 
+he is neutral and fair
+◼    keen to stop the fighting 
+between the families; a 
+peace-maker
+◼    someone who, as his 
+Italian name suggests 
+(translated as ‘wishing 
+well’ in English), wants the 
+best outcome
+◼    a reliable go-between 
+for the Montagues and 
+Escalus.
+Lord Montague is:
+◼    the father of Romeo
+◼    head of the Montague 
+family
+◼    the person who reports his 
+wife’s death.
+Tybalt is:
+◼    the cousin of Juliet
+◼    a very aggressive 
+character
+◼    interested in picking fights 
+with the Montagues
+◼   full of hatred and anger.
+Mercutio is:
+◼    the best friend of Romeo, 
+to whom he is very loyal
+◼    intelligent, quick and 
+clever; a strong character 
+with strong opinions
+◼    someone who likes a joke 
+and likes to make fun of 
+people, including Romeo
+◼    always looking for a fight, 
+which leads to his death.
+GENERAL VOCABULARY
+banishment the act of sending someone 
+away permanently from their country or 
+the area where they live, especially as an 
+official punishment 
+The Friar is:
+◼    a religious figure who acts 
+out of concern for Romeo
+◼    able to offer Romeo advice 
+because he knows him 
+very well
+◼    someone who seems wise 
+and knowledgeable and is 
+trusted
+◼    brave, as he is prepared to 
+suggest a very risky plan 
+that does not work out 
+well; he could be blamed 
+by some for the deaths of 
+Romeo and Juliet
+◼    a schemer, who has a plan 
+to end the feud between 
+the families, based on the 
+plan he offers Juliet.
+You can learn a great deal about the different characters by studying a 
+particular scene in detail. A good example is the central scene (Act 3, 
+Scene 1) in which Romeo kills Tybalt.
+Working with a partner, in a group or by yourself, think about and make 
+notes on the following points.
+◼   What happened in the previous scene, and therefore what
+mood is set for the audience.
+◼   The signs that a fight is starting.
+◼   Whether the fighting and killing are presented as inevitable.
+◼   Links with the fight at the start of the play.
+◼   How the audience feels about Romeo at the end of the scene.
+◼   How the scene sets up the characters for the next scene.
+(How does it relate to the preceding and following scenes?)
+◼   How the end of the scene relates to the earlier fight and the
+warning from the Prince in Act 1.
+▼  CONSIDERING CHARACTER
+ACTIVITY 3
+AO1
+LOVE
+Many plays, including those of Shakespeare, look at different types of love. 
+We are introduced to Romeo as someone whose feelings for Rosaline might 
+be called infatuation; he is immediately shown as completely love-struck, 
+but the superficiality of his feelings is underlined by the speed with which he 
+abandons them at the sight of Juliet.
+The play gives several examples of close friendship as a form of love, 
+particularly the protective love shown by the Nurse to Juliet and the Friar to 
+Romeo; as well as the ‘laddish’ friendships of the young men, which are still 
+instantly recognisable in any street in Italy today, and marked by what the 
+Italians themselves call braggadocio (a kind of boastful swagger). However, 
+such friendship can generate fierce loyalty, to the point of being willing to die 
+for one’s friend, as happens with Mercutio.
+MARRIAGE
+There is also the view in 17th–century society that marriage is above all a 
+business contract, in which love is not a very important consideration: Paris 
+wishes to marry Juliet, but admits that he has ‘little talked of love’, and even 
+Juliet, when asked how she feels about the idea of marriage to Paris, only says 
+‘I’ll look to like’, showing that she has little emotional investment in the idea, 
+but will simply try the idea. 
+SEX AND SEXUAL REFERENCES
+Part of the overall treatment of love is that of sexual love. Although, clearly, the 
+marriage of Romeo and Juliet is happily consummated, many of the references 
+to sex are not directly linked to their love. Instead they are there to provide 
+an endless source of complicated puns and witticisms, particularly for the 
+young men and in some instances for the Nurse. Such jesting treats love in an 
+altogether more basic way than the idealism of the central relationship.
+THEMES
+GENERAL VOCABULARY
+superficiality the quality of appearing to 
+be true or real, but only on the surface
+GENERAL VOCABULARY
+jesting saying things that you do not really 
+mean in order to amuse people
+SUBJECT VOCABULARY
+witticism a clever amusing remark
+BENVOLIO
+LADY MONTAGUE
+TYBALT
+MERCUTIO
+FRIAR LAURENCE
+LORD MONTAGUE
+The Nurse is:
+◼    like a mother in her 
+protective attitudes to 
+Juliet
+◼    devoted to the Capulet 
+family but prepared to take 
+risks to help Juliet
+◼    inclined to chatter a great 
+deal and is the source of 
+many comical exchanges
+◼    prepared to go against her 
+own views in the advice 
+she gives to Juliet about 
+marrying Paris
+◼    happy to tease Juliet 
+initially by withholding 
+information from Romeo.
+THE NURSE
+englishlit_sample2.indd   8-9
+08/03/2016   13:26
+Conscernum. Ad con 
+rendace psenterus 
+loccier nihicon tebefex 
+nocastisque dem idem 
+in vit iam ini fir licultum
+Ut fugit dolupti as 
+remodic ipsus, est offic 
+tore moditas 
+rerescientor andam dis 
+consectas re, totat.
+Lectus eossequi volup-
+tat pra excea ipicabo 
+reperum, officie ndanim 
+re doluptaque mo ven-
+dantio id moluptat.
+A wide range of varied 
+activities to encourage 
+understanding and 
+embed understanding 
+as an individual, as well 
+as in larger groups to 
+establish cross-peer 
+learning and communi-
+cation.
+Od et, conse pro quasi-
+ta derumquia di dolupta 
+tiorem am, exerum et 
+fugiate coreium fugiae 
+cuptaspero estet,
+Useful words and phras-
+es are colour coded 
+within the main text and 
+picked out in the margin 
+with concise and simple 
+definitions. These will 
+support understanding 
+of key subject terms 
+and support students 
+Otatet fuga. Cate volor-
+atio molorem cum, qui 
+voluptam fuga. Ximolut 
+aturio. Itat voluptae do-
+lupit quatur alitionsedit
+Cum escilibus eni-
+musam qui ut volorum, 
+et odipien turehenis 
+veris magnis vel es sinis 
+rest, et, omnimus, ea
+this course. They can be taught as blocks at the start of the course or integrated into relevant sections of the texts being 
+studied.
+The Paper 1 and Paper 2 chapters cover all of the content required by the course, mirroring the two exam papers for 
+those taking this route. The information in the Paper 2 chapter will also work for anybody taking the coursework route. 
+This is then supplemented by the Paper 3 chapter, which gives advice on this paper for those taking this route. 
+For each section or Anthology text, information is interspersed with activities in order to put learning into practice and 
+exam-style questions to help you prepare and practise for the exam. Other features help to expand your knowledge and 
+reinforce your learning. All Anthology texts are reproduced in full, with detailed analysis and questions for each text.
+CONFIDENTIAL: Uncorrected WIP proof, NOT for circulation or distribution. © Pearson Education.
+
+ASSESSMENT OVERVIEW
+x
+ASSESSMENT OVERVIEW
+The following tables give an overview of the assessment for this course.
+We recommend that you study this information closely to help ensure that you are fully prepared for this course and 
+know exactly what to expect in each part of the assessment.
+This section summarises the alternative routes that can be taken: Paper 1 is the compulsory unit for all students taking 
+International GCSE English Language A. Paper 2 is taken by those opting for the 100 per cent examination route 
+(Route 1). Those International GCSE students who opt for coursework take Paper 3 instead of Paper 2 (Route 2).
+Route 1: 100 per cent written examination paper (Paper 1 and Paper 2)
+Route 2: 60 per cent written examination paper and 40 per cent internally assessed coursework (Paper 1 and Paper 3)
+ROUTE 1
+▼ PAPER 1
+▼ PERCENTAGE
+▼ MARKS
+▼ TIME
+▼ AVAILABILITY
+NON-FICTION AND 
+TRANSACTIONAL 
+WRITING
+Written examination 
+paper
+Paper code 4EA/01
+Externally set and 
+assessed by Pearson 
+Edexcel
+Single tier of entry
+60%
+90
+2 hours 15 
+minutes
+January and June examination 
+series
+First assessment June 2018
+▼ PAPER 2
+▼ PERCENTAGE
+▼ MARKS
+▼ TIME
+▼ AVAILABILITY
+POETRY AND 
+PROSE TEXTS 
+AND IMAGINATIVE 
+WRITING
+Written examination 
+paper
+Paper code 4EA/02
+Externally set and 
+assessed by Pearson 
+Edexcel
+Single tier of entry
+40%
+60
+1 hour 30 
+minutes
+January and June examination 
+series
+First assessment June 2018
+CONFIDENTIAL: Uncorrected WIP proof, NOT for circulation or distribution. © Pearson Education.
+
+ASSESSMENT OVERVIEW
+xi
+ROUTE 2
+▼ PAPER 1
+▼ PERCENTAGE
+▼ MARKS
+▼ TIME
+▼ AVAILABILITY
+NON-FICTION AND 
+TRANSACTIONAL 
+WRITING
+Written examination 
+paper
+Paper code 4EA1/01
+Externally set and 
+assessed by Pearson 
+Edexcel
+Single tier of entry
+60%
+90
+2 hours 15 
+minutes
+January and June examination 
+series
+First assessment June 2018
+▼ PAPER 3
+▼ PERCENTAGE
+▼ MARKS
+▼ TIME
+▼ AVAILABILITY
+POETRY AND 
+PROSE TEXTS AND 
+IMAGINATIVE WRITING
+Coursework
+Paper code 4EA1/03
+Two teacher-devised 
+assignments, internally 
+set and assessed, and 
+externally moderated by 
+Pearson Edexcel
+40%
+60
+n/a
+January and June examination 
+series
+First assessment June 2018
+ASSESSMENT OBJECTIVES AND WEIGHTINGS
+▼ SECTION
+▼  ASSESSMENT 
+OBJECTIVE
+▼ DESCRIPTION
+▼  % IN INTERNATIONAL 
+GCSE
+READING
+AO1
+Read and understand a variety of texts, selecting and 
+interpreting information, ideas and perspectives
+15% 
+AO2
+Understand and analyse how writers use linguistic and 
+structural devices to achieve their effects
+20% 
+AO3
+Explore links and connections between writers’ ideas 
+and perspectives, as well as how these are conveyed
+15% 
+WRITING
+AO4
+Communicate effectively and imaginatively, adapting 
+form, tone and register of writing for specific purposes 
+and audiences
+30% 
+AO5
+Write clearly, using a range of vocabulary and sentence 
+structures, with appropriate paragraphing and accurate 
+spelling, grammar and punctuation
+20%
+RELATIONSHIP OF ASSESSMENT OBJECTIVES TO UNITS
+▼ UNIT NUMBER
+▼ ASSESSMENT OBJECTIVE
+AO1
+AO2
+AO3
+AO4
+AO5
+PAPER 1
+7%
+8%
+15%
+18%
+12%
+PAPER 2 / PAPER 3
+8%
+12%
+0%
+12%
+8%
+TOTAL FOR  
+INTERNATIONAL  
+GCSE
+15%
+20%
+15%
+30%
+20%
+CONFIDENTIAL: Uncorrected WIP proof, NOT for circulation or distribution. © Pearson Education.
+
+ASSESSMENT OVERVIEW
+xii
+ASSESSMENT SUMMARY: ROUTE 1
+▼ PAPER 1
+▼ DESCRIPTION
+▼ MARKS
+▼  ASSESSMENT 
+OBJECTIVES
+NON-FICTION AND 
+TRANSACTIONAL 
+WRITING
+PAPER CODE 4EA1/01
+Structure
+Paper 1 assesses 60% of the total English Language A qualification.
+There will be two sections on the paper.
+Students must answer all questions in Section A and one question from 
+a choice of two in Section B.
+Section A: Non-fiction
+Students will study and analyse selections from a range of non-fiction.
+Students must:
+ 
+◼
+develop skills to analyse how writers use linguistic and structural 
+devices to achieve their effects
+ 
+◼
+explore links and connections between writers’ ideas and 
+perspectives.
+45
+Questions will 
+test the following 
+Assessment 
+Objectives: 
+AO1 – 7% 
+AO2 – 8% 
+AO3 – 15%
+Section B: Transactional Writing
+Students will explore and develop transactional writing skills.
+Students must:
+ 
+◼
+develop transactional writing skills for a variety of purposes and 
+audiences
+ 
+◼
+use spelling, punctuation and grammar accurately.
+45
+Questions will 
+test the following 
+Assessment 
+Objectives: 
+AO4 – 18% 
+AO5 – 12%
+This is a single-tier examination paper and all questions cover the full 
+ranges of grades from 9–1.
+The assessment duration is 2 hours 15 minutes.
+Closed book: texts are not allowed in the examination. However, 
+students will be provided with any relevant extracts in the examination.
+The total 
+number 
+of marks 
+available 
+is 90
+▼ PAPER 2
+▼ DESCRIPTION
+▼ MARKS
+▼  ASSESSMENT 
+OBJECTIVES
+POETRY AND 
+PROSE TEXTS AND 
+IMAGINATIVE WRITING
+PAPER CODE 4EA1/02
+Structure
+Paper 2 assesses 40% of the total English Language A qualification.
+There will be two sections on the paper.
+Students must answer the question in Section A and one question from 
+a choice of three in Section B.
+Section A: Poetry and Prose Texts
+Students will study and analyse selections from a range of fictional 
+poetry and prose texts.
+Students must:
+ 
+◼
+develop skills to analyse how writers use linguistic and structural 
+devices to achieve their effects.
+30
+Questions will 
+test the following 
+Assessment 
+Objectives:
+AO1 – 8%
+AO2 – 12%
+Section B: Imaginative Writing
+Students will explore and develop imaginative writing skills. 
+Students must:
+ 
+◼
+develop imaginative writing skills to engage the reader
+ 
+◼
+use spelling, punctuation and grammar accurately.
+30
+Questions will 
+test the following 
+Assessment 
+Objectives:
+AO4 – 12%
+AO5 – 8%
+This is a single-tier examination paper and all questions cover the full 
+ranges of grades from 9–1.
+The assessment duration is 1 hour 30 minutes.
+Closed book: texts are not allowed in the examination. However, 
+students will be provided with any relevant extracts in the examination.
+The total 
+number 
+of marks 
+available 
+is 60
+CONFIDENTIAL: Uncorrected WIP proof, NOT for circulation or distribution. © Pearson Education.
+
+ASSESSMENT OVERVIEW
+xiii
+ROUTE 2
+▼ PAPER 1
+▼ DESCRIPTION
+▼ MARKS
+▼  ASSESSMENT 
+OBJECTIVES
+NON-FICTION AND 
+TRANSACTIONAL 
+WRITING
+PAPER CODE 
+4EA1/01
+Structure
+Paper 1 assesses 60% of the total English Language A qualification.
+There will be two sections on the paper.
+Students must answer all questions in Section A and one question from a 
+choice of two in Section B.
+Section A: Non-fiction
+Students will study and analyse selections from a range of non-fiction.
+Students must:
+ 
+◼
+develop skills to analyse how writers use linguistic and structural 
+devices to achieve their effects
+ 
+◼
+explore links and connections between writers’ ideas and perspectives.
+45
+Questions will 
+test the following 
+Assessment 
+Objectives:
+AO1 – 7%
+AO2 – 8%
+AO3 – 15%
+Section B: Transactional Writing
+Students will explore and develop transactional writing skills.
+Students must:
+ 
+◼
+develop transactional writing skills for a variety of purposes and 
+audiences
+ 
+◼
+use spelling, punctuation and grammar accurately.
+45
+Questions will 
+test the following 
+Assessment 
+Objectives:
+AO4 – 18%
+AO5 – 12%
+This is a single-tier examination paper and all questions cover the full 
+ranges of grades from 9–1.
+The assessment duration is 2 hours 15 minutes.
+Closed book: texts are not allowed in the examination. However, students 
+will be provided with any relevant extracts in the examination.
+The total 
+number 
+of marks 
+available 
+is 90
+▼ PAPER 3
+▼ DESCRIPTION
+▼ MARKS
+▼  ASSESSMENT 
+OBJECTIVES
+POETRY AND 
+PROSE TEXTS 
+AND IMAGINATIVE 
+WRITING
+PAPER CODE 
+4EA1/03
+Structure
+Paper 3 coursework assesses 40% of the total English Language A 
+qualification.
+The coursework option is open to centres that have been approved by 
+Pearson Edexcel to conduct coursework.
+The assessment of the component is through two coursework assignments, 
+internally set and assessed, and externally moderated by Pearson.
+Section A: Poetry and Prose Texts
+Students will study and analyse selections from a range of fictional poetry 
+and prose texts.
+Students must:
+ 
+◼
+develop skills to analyse how writers use linguistic and structural 
+devices to achieve their effects.
+30
+Questions will 
+test the following 
+Assessment 
+Objectives:
+AO1 – 8%
+AO2 – 12%
+Section B: Imaginative Writing
+Students will explore and develop imaginative writing skills. 
+Students must:
+ 
+◼
+develop imaginative writing skills to engage the reader
+ 
+◼
+use spelling, punctuation and grammar accurately.
+30
+Questions will 
+test the following 
+Assessment 
+Objectives:
+AO4 – 12%
+AO5 – 8%
+This is a single-tier coursework assignment and will cover the full ranges 
+of grades from 9–1.
+There is no prescribed word length for the coursework paper. Typically 
+the task may be up to 1000 words, but there are no penalties for 
+exceeding this guidance.
+The total 
+number 
+of marks 
+available 
+is 60
+CONFIDENTIAL: Uncorrected WIP proof, NOT for circulation or distribution. © Pearson Education.
+
+CONFIDENTIAL: Uncorrected WIP proof, NOT for circulation or distribution. © Pearson Education.
+
+PAPER 2
+TEXT ANTHOLOGY: FICTION
+3
+READING SKILLS
+READING SKILLS
+3
+Assessment Objective 1 
+Read and understand a 
+variety of texts, selecting and 
+interpreting information, ideas 
+and perspectives
+Assessment Objective 2 
+Understand and analyse how 
+writers use linguistic and 
+structural devices to achieve 
+their effects
+Assessment Objective 3 
+Explore links and connections 
+between writers’ ideas and 
+perspectives, as well as how 
+these are conveyed
+This chapter focuses on some core reading skills that you 
+can apply to all parts of the English Language A course. 
+Working through these lessons and activities will help you to 
+develop the reading skills that you will need for the exams 
+and coursework assignments.
+The chapter is split into the following sections:
+◼ Text analysis
+◼ Use of language.
+In the reading sections of your exams you will need to be 
+able to meet the Assessment Objectives, AO1, AO2 and AO3.
+CONFIDENTIAL: Uncorrected WIP proof, NOT for circulation or distribution. © Pearson Education.
+
+READING SKILLS
+TEXT ANALYSIS
+4
+It can be difficult to know where to start when approaching a text 
+for the first time. You need a methodical approach that allows you 
+to understand the main ideas that are being communicated. 
+ 
+Skimming and scanning are two important reading techniques. 
+They are often confused with one another, but they are very 
+different skills. However, both help you to achieve the same aim: 
+to read more quickly and effectively. 
+SKIMMING AND SCANNING
+▶
+LEARNING OBJECTIVES
+This lesson will help you to:
+ 
+◼
+understand the main ideas 
+that a writer is communicating
+ 
+◼
+summarise the key points of a 
+text quickly
+ 
+◼
+build confidence in 
+independent reading. 
+SKIMMING
+Skimming is useful when you want to quickly get a general idea of what a 
+text is about. When you skim, you read through the text three to four times 
+faster than when you read each word in order to get a sense of the topic, 
+ideas and information being conveyed.
+WHEN SHOULD I SKIM? 
+ 
+◼
+When you have a lot to read in a short space of time.
+ 
+◼
+When revising topics to identify key information.
+ 
+◼
+When locating a passage in a text.
+ 
+◼
+To find relevant material when planning an essay.
+SCANNING
+Scanning refers to reading through material to find specific information. 
+When you scan, you run your eyes over the information in a text and pull 
+out specific words, phrases or pieces of information. You may not realise, 
+but you scan through different texts every day, from television guides to 
+football results.
+WHEN SHOULD I SCAN? 
+ 
+◼
+When looking for specific pieces of information quickly.
+ 
+◼
+To locate a relevant quotation or section in a literature text.
+HINT
+To skim effectively, you don’t read 
+everything. What you read is more 
+important than what you skip. Try to:
+ 
+◼
+highlight key points
+ 
+◼
+rephrase the main point of each 
+paragraph in your own words
+ 
+◼
+underline any unfamiliar words. 
+KEY POINT
+Skimming and scanning are important 
+reading techniques. Skimming is 
+reading quickly to get a general sense 
+of a text. Scanning involves looking 
+through a text for specific information.
+Read the following examples and identify which describes the process 
+of skimming and which describes scanning. 
+1 You flick through a financial report to find a particular set of data. 
+2 You quickly go through a twenty-page report in a few minutes to 
+determine the overall subject, tone and a few key points. 
+3 You pick up a newspaper at a coffee shop, look over the first few 
+pages and gather some general information about the events 
+happening in the world.  
+▼ SKIMMING OR SCANNING? 
+ACTIVITY 1 
+CONFIDENTIAL: Uncorrected WIP proof, NOT for circulation or distribution. © Pearson Education.
+
+READING SKILLS
+TEXT ANALYSIS
+5
+ 
+◼
+Read the topic sentence. This will give you a good sense of the ideas and 
+structure of the whole text.
+ 
+◼
+Read the first and last paragraphs. 
+ 
+◼
+Use chapter names, headings and subheadings as a guide. 
+STRATEGIES FOR SKIMMING 
+STRATEGIES FOR SCANNING
+ 
+◼
+For scanning to be successful, be sure of your purpose. Think about what 
+information you are looking for before you begin to scan the text. 
+ 
+◼
+Consider how the text is structured. Is it arranged alphabetically, by 
+category, chronologically or does it use other devices such as flashback? 
+ 
+◼
+Use your index finger to help you, such as when scanning a timetable for a 
+train time. Move your finger down the text at the same time as your eyes to 
+help you to maintain focus. 
+SUBJECT VOCABULARY
+topic sentence the first sentence in a 
+paragraph
+chronologically organised in linear time
+flashback a scene in a film, novel, etc. set 
+in a time earlier than the main story. Can 
+also be used in non-fiction works.
+HINT
+Use your own words in a summary 
+wherever possible. Simply repeating 
+sentences from the original text does not 
+show that you have understood what the 
+writer is communicating.
+SKILLS
+CREATIVITY, INNOVATION
+SKILLS
+INITIATIVE
+Once you are confident that you understand the text, you need to 
+be able to summarise the key points that the writer makes. A good 
+summary phrases these points in a concise and clear style. Choose an 
+extract and write a summary of it.
+▼ SUMMARISING INFORMATION 
+ACTIVITY 3 
+▼  SKIMMING AND SCANNING RACE
+ 
+▶ How fast are you at finding the information you need?
+You need a dictionary, a pen and a piece of paper. Follow the instructions below carefully. 
+ACTIVITY 2 
+STEP 1
+Open the dictionary 
+at any page.
+STEP 2
+Write down the 
+page number in the 
+margin of a piece of 
+paper.
+STEP 6
+Now swap pieces of 
+paper with your partner. 
+STEP 7
+See who can complete the written list 
+with all the words first.
+STEP 8
+Now write a paragraph that is as short as 
+possible and that uses all your partner’s words.
+STEP 4
+See what word 
+you have chosen. 
+Write down its (first) 
+definition, but NOT 
+the word itself.
+STEP 5
+Repeat the steps 
+above until you have 
+ten definitions on 
+your page.
+STEP 3
+Close your eyes 
+and place your 
+finger somewhere 
+on the page of the 
+dictionary.
+CONFIDENTIAL: Uncorrected WIP proof, NOT for circulation or distribution. © Pearson Education.
+
+READING SKILLS
+TEXT ANALYSIS
+6
+▲ A couple on their wedding day.
+EXPLICIT MEANING
+The picture shows a woman in a dress holding flowers and standing close 
+to a man in a suit. 
+IMPLICIT MEANING
+We may be able to infer that this is a wedding photograph because we 
+have experience of seeing this type of image being related to weddings. 
+To be a good reader, you need to understand both what a text tells 
+you directly, or explicitly, and to infer based on what you think 
+the writer indirectly, or implicitly, suggests in their text. This may 
+be about the writer’s views, character or theme. 
+EXPLICIT AND IMPLICIT MEANING
+▶
+LEARNING OBJECTIVES
+This lesson will help you to:
+ 
+◼
+interpret the information and 
+ideas in a text
+ 
+◼
+read between the lines to work 
+out what the text implies.
+KEY POINT
+Explicit meaning is where the writer 
+explains their ideas.
+Implicit meaning is where the writer 
+implies their ideas; you have to infer 
+and imagine based on what you know. 
+▼  AN EXTRACT FROM A WALK IN THE WOODS  
+BY BILL BRYSON
+We hiked till five and camped beside a tranquil spring in a small, grassy 
+clearing in the trees just off the trail. Because it was our first day back on the 
+trail, we were flush for food, including perishables like cheese and bread that 
+had to be eaten before they went off or were shaken to bits in our  
+packs, so we rather gorged ourselves, then sat around smoking and chatting 
+idly until persistent and numerous midgelike creatures (no-see-ums, as they 
+are universally known along the trail) drove us into our tents. It was perfect 
+sleeping weather, cool enough to need a bag but warm enough that you could 
+sleep in your underwear, and I was looking forward to a long night’s snooze 
+– indeed was enjoying a long night’s snooze – when, at some indeterminate 
+dark hour, there was a sound nearby that made my eyes fly open. Normally, 
+I slept through everything – through thunderstorms, through Katz’s snoring 
+and noisy midnight pees – so something big enough or distinctive enough to 
+wake me was unusual. There was a sound of undergrowth being disturbed 
+– a click of breaking branches, a weighty pushing through low foliage – and 
+then a kind of large, vaguely irritable snuffling noise.
+▶
+SUBJECT VOCABULARY
+infer read between the lines
+CONFIDENTIAL: Uncorrected WIP proof, NOT for circulation or distribution. © Pearson Education.
+
+READING SKILLS
+TEXT ANALYSIS
+7
+Bear! 
+ 
+I sat bolt upright. Instantly every neuron in my brain was awake and 
+dashing around frantically, like ants when you disturb their nest. I reached 
+instinctively for my knife, then realized I had left it in my pack, just outside 
+the tent. Nocturnal defense had ceased to be a concern after many successive 
+nights of tranquil woodland repose. There was another noise, quite near. 
+ 
+“Stephen, you awake?” I whispered. 
+ 
+“Yup,” he replied in a weary but normal voice. 
+ 
+“What was that?” 
+ 
+“How the hell should I know?” 
+ 
+“It sounded big.” 
+ 
+“Everything sounds big in the woods.” 
+ 
+This was true. Once a skunk had come plodding through our camp and it 
+had sounded like a stegosaurus. 
+IMPROVE YOUR WRITING 
+Writers use a lot of similar phrases to convey meaning. Don’t just use ‘shows’; using some 
+of these synonyms could improve your writing. 
+ 
+◼
+highlights 
+ 
+◼
+suggests
+ 
+◼
+is redolent of
+ 
+◼
+has connotations of
+ 
+◼
+exposes
+ 
+◼
+denotes
+ 
+◼
+illustrates
+ 
+◼
+conveys
+ 
+◼
+introduces
+ 
+◼
+portrays
+ 
+◼
+demonstrates
+ 
+◼
+emphasises
+ 
+◼
+signifies  
+ 
+◼
+reflects
+ 
+◼
+implies
+ 
+◼
+represents
+ 
+◼
+reveals
+ 
+◼
+infers
+ 
+◼
+connotes.
+Read the following extract from A Walk In the Woods by Bill Bryson. In 
+pairs, choose a paragraph each and consider the following questions. 
+ 
+▶ What does the narrator tell us about his thoughts and feelings? 
+ 
+▶ Which words and phrases allow us to infer his thoughts and feelings? 
+Draw a table with two columns, one for each question, and pick out the 
+key words and phrases which convey explicit and implicit meaning. 
+▼ INFERRING FROM A TEXT
+ACTIVITY 1 
+SKILLS
+CRITICAL THINKING, ANALYSIS, 
+INTERPRETATION
+CONFIDENTIAL: Uncorrected WIP proof, NOT for circulation or distribution. © Pearson Education.
+
+READING SKILLS
+TEXT ANALYSIS
+8
+The P-E-E chain stands for Point-Evidence-Explain. This is the order in which 
+you should organise the information in each paragraph that you write.
+1 State your basic point clearly and concisely. Your point should be relevant 
+to the task or question that you have been set.
+2 Demonstrate how you can support your opening statement with reference 
+to a specific part of the text that you are writing about. Quotations can 
+be used as evidence to support what you are saying and to help you to 
+make your point. Try to select words or phrases from the text that precisely 
+support your point and keep them as brief as possible. Use inverted 
+commas, also known as quotation marks, to indicate where you have used 
+words directly from another text.
+When writing, it is important to express points in a clear and 
+structured way. We organise writing into paragraphs. Each 
+paragraph should be self-contained and make sense on its own. 
+It should be constructed of a group of sentences which all link to 
+the same idea, theme or topic.
+POINT EVIDENCE EXPLAIN
+▶
+ LEARNING OBJECTIVES
+This lesson will help you to: 
+ 
+◼
+organise your ideas and 
+structure your writing clearly 
+and with direction. 
+MAKING THE PERFECT POINT 
+HINT
+A quotation does not have to be direct 
+speech: you can quote evidence from a 
+science journal or a famous play in the 
+same way.
+3 Add an explanation. The first step is to explain how your quotation supports 
+the point that you have made so that your reader knows why you have 
+included it. In English Language, it is often useful to consider the use of 
+language, going into some detail about the writer’s choice of words (this is 
+also known as diction) and considering any linguistic devices or techniques 
+which have been used. 
+PERFECT PUNCTUATION 
+Short quotations of a single line or part of a line should be incorporated within 
+quotation marks as part of the running text of your essay, ‘just like this’. 
+Quotations of two or more full lines should be indented from the main body of 
+the text and introduced by a colon, like this:
+‘this is how you would quote a longer piece of text, but make sure that it 
+is all relevant.’
+SUBJECT VOCABULARY
+quotations words quoted from a text
+quotation marks punctuation marks used 
+to indicate where you have quoted, ‘like 
+this’
+direct speech words spoken by a 
+character in a novel, play or poem
+diction the writer’s choice of words
+PARAGRAPH SANDWICHES
+You can think of your paragraph like a sandwich or burger, with three separate 
+parts.
+Top bun: opening topic sentence
+Introduces the paragraph and your 
+main idea.
+Fillings: supporting sentences
+This is the main part. Describe 
+and explain your main point 
+using quotes and evidence to 
+complement and support it.
+Bottom bun: closing sentence
+A concluding sentence to bring 
+everything together
+CONFIDENTIAL: Uncorrected WIP proof, NOT for circulation or distribution. © Pearson Education.
+
+READING SKILLS
+TEXT ANALYSIS
+9
+Read this chain paragraph, summarising the novel Of Mice and Men 
+by John Steinbeck. Copy the paragraph and colour code or label each 
+part of the P-E-E chain. Each part of the chain may be more than one 
+sentence.
+Set in the Great Depression of the 1930s, the novel tells of the close 
+friendship between two farm workers, George and Lennie: ‘I got you 
+to look after me, and you got me to look after you.’ The other men 
+on the ranch are described as ‘the loneliest guys in the world’ and 
+George and Lennie are proud of the fact that they have each other. 
+The repetition of the second person pronoun ‘you’ here emphasises 
+the close and reciprocal bond between the men. George and Lennie 
+often repeat this line to one another when they are talking about 
+their dreams for the future and Lennie is always excited when George 
+reaffirms their friendship in this way. Their friendship gives them hope 
+and joy in a desolate world. 
+Using a set text from your English studies, write your own question 
+and P-E-E chain paragraph about a character or theme. The following 
+questions are examples to help you to construct a question based on 
+your own reading.
+ 
+▶ How is the protagonist portrayed in the novel?
+ 
+▶ What is the main theme of the novel? 
+ 
+▶ What is the author trying to convey through the novel?
+ 
+▶ How does the opening set the scene for the novel? 
+Give your question and paragraph to a partner and check one another’s 
+work. Consider the following questions and clearly label examples of 
+each within the paragraph.
+Does the paragraph include:
+ 
+◼
+a Point?
+ 
+◼
+some Evidence: a quotation or example?
+ 
+◼
+an Explanation: an exploration of the quotation and what it shows? 
+This may include:
+ 
+>
+some comment on the language or literary devices used
+ 
+>
+some understanding of the writer’s attitude
+ 
+>
+a personal response to the characters or themes of a text.
+▼ SUMMARISING WITH P-E-E
+▼ P-E-E-RFECT LITERATURE PARAGRAPHS
+ACTIVITY 1
+ACTIVITY 2
+SUBJECT VOCABULARY
+protagonist the main character
+KEY POINT
+Follow these four rules for excellent 
+writing:
+1 Structure: Ideas must be clearly 
+expressed and logically sequenced.
+2 Paragraphs: Paragraphs should be 
+well constructed and follow on from 
+one another. Quotations should be 
+correctly presented.
+3 Vocabulary: Use a wide range of key 
+vocabulary with precision.
+4 Spelling, punctuation and grammar: 
+Maintain accuracy throughout.
+SKILLS
+PROBLEM SOLVING, ANALYSIS, 
+REASONING
+SKILLS
+CRITICAL THINKING, PROBLEM SOLVING, 
+ANALYSIS, INTERPRETATION
+CONFIDENTIAL: Uncorrected WIP proof, NOT for circulation or distribution. © Pearson Education.

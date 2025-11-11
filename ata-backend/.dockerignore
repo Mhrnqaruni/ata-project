@@ -1,0 +1,66 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Git
+.git/
+.gitignore
+
+# Environment files (Railway will use its own env vars)
+.env
+.env.local
+.env.*.local
+
+# Development files
+*.md
+README.md
+docs/
+test.db
+
+# Node modules (if any)
+node_modules/
+package.json
+package-lock.json
+
+# Temporary files
+*.log
+logs/
+*.tmp
+*.temp
+
+# Local development data
+assessment_uploads/
+directory_map.txt
+Database Schema for now.txt
+direcotory generator.py
+appservicesdocument_parser_reload_trigger.txt
+add_total_pages_column.sql
+
+# OS files
+.DS_Store
+Thumbs.db

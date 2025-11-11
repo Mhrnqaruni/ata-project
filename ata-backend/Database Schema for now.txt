@@ -1,0 +1,29 @@
+
+
+
+C:\Users\User\Desktop\Alpaca\App>psql -U ata_user -d ata_local_db -h localhost
+Password for user ata_user:
+psql (17.6)
+WARNING: Console code page (437) differs from Windows code page (1252)
+         8-bit characters might not work correctly. See psql reference
+         page "Notes for Windows users" for details.
+Type "help" for help.
+
+ata_local_db=> \dt
+              List of relations
+ Schema |      Name       | Type  |  Owner
+--------+-----------------+-------+----------
+ public | alembic_version | table | ata_user
+ public | assessments     | table | ata_user
+ public | chatmessages    | table | ata_user
+ public | chatsessions    | table | ata_user
+ public | classes         | table | ata_user
+ public | generations     | table | ata_user
+ public | results         | table | ata_user
+ public | students        | table | ata_user
+(8 rows)
+
+
+ata_local_db=> \q
+
+C:\Users\User\Desktop\Alpaca\App>

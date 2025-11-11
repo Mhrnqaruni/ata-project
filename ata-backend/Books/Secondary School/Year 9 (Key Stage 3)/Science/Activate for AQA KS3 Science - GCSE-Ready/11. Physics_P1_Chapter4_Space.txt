@@ -1,0 +1,689 @@
+3.
+The eye and the camera
+Learning objectives
+The iris is the coloured part of your eye: Everyone's iris is
+After this topic you will be able to:
+unique: It is like a fingerprint:
+describe how the eye works
+How do you see?
+describe how a simple camera
+forms an image:
+optic nerve
+cornea
+pupil
+object
+iris
+retina and image
+How an image is formed in your eye.
+No-one has the same
+pattern in
+their iris as you:
+When you lookat your friend,an image of your friend is formed
+on the retina of your eye. Light reflected from your friend goes
+through the pupil of your eye: The iris is a muscle that controls
+Key Words
+the size of the pupil The cornea (the transparent outer part of
+your eye) and the lens focus the light onto the retina. This forms an
+retina, pupil, iris, cornea, inverted
+image The image is inverted (upside down) but your brain sorts it
+photoreceptor, optic nerve, brain,
+out soyou see an image of your friend that is the right way up.
+pinhole camera, real (image). pixel,
+coupled device (CCD)
+A
+State which
+of the eye focus the light:
+What happens in the retina?
+The retina is a
+photosensitive material that contains cells that
+The pupil is a hole in the front of
+respond to light:
+are called photoreceptors. There are two types
+your eye: If you dissect a cows eye
+of photoreceptor: rods and cones Rods are sensitive to movement
+you can
+your finger through it:
+and dim light: Cones are sensitive to bright light and colour When
+light hits the rods and cones; chemical reactions produce an
+electrical impulse that travels up the optic nerve to your brain
+Link
+B State the type of reaction that takes place in the retina:
+You can learn more about
+specialised
+cells in Bl 1.3 Specialised cells
+142
+charge-€
+parts
+Factl
+Foul
+They
+put _
+
+P1 Chapter 3: Light
+How is the eye like a camera?
+A camera produces
+image, just like your eye One of the simplest
+Real or virtual?
+cameras is a
+pinhole camera
+Here are some words that describe
+Only light travelling in the right
+real and virtual images. Use these
+direction gets through the pinhole.
+words to explain the difference
+between the two types of image:
+screen
+virtual
+real
+mirror
+pinhole
+object
+{
+An image is formed in a pinhole camera:
+Light enters the camera through the pinhole; just like it does
+through your pupil An image is formed on the screen, just like it is
+on your retina The image is a real image, not
+image in a
+mirror:
+image that you can make on a screen is a real image:
+This is the view of your retina that an
+photosensitive paper; or tracing-paper screen
+optician would see
+Summary Questions
+1
+Copy and complete the
+This is a simple
+sentences below:
+pinhole camera:
+When you look at an
+apple, light
+off the apple into your
+eye: The light enters your eye
+pinhole
+through the
+The
+and the
+Cameras used to contain photographic film, which was
+focus the light onto the
+The light forms a
+photosensitive: When light hit the film there was a chemical
+image. A chemical reaction
+reaction that changed the chemicals in the film. When you
+produces an
+that
+signal
+processed the film you saw the image.
+is sent down your
+At the back ofa digital camera there is a
+of photosensitive
+to your brain:
+picture elements, or pixels This is called a charge-coupled
+(9 marks)
+device (CCD) When light hits each pixel it produces charge. The
+2
+Describe how the camera in
+light produces an electrical, not chemical, effect: When you take a
+your phone is different to a
+picture; this charge is moved off each of the pixels and stored That
+pinhole camera:
+is why there is a slight delay before you can take another picture:
+(2 marks)
+3 4A4 compare the eye and
+C
+Name the photosensitive
+at the back of a
+the pinhole camera.
+digital camera
+(6 marks QWC)
+143
+an
+like
+your
+Any
+grid
+grid
+
+3.5
+Colour
+Learning objectives
+Have you ever seen
+really
+bubbles? There are colours
+After this topic you will be able to:
+on the bubbles just like the colours in a rainbow or on a
+CD or DVD:
+what happens when
+light passes through a prism
+describe how primary colours
+add to make secondary colours
+explain how filters and coloured
+materials subtract light:
+Where do the
+colours come
+from?
+Splitting white light
+White light is made up of seven different colours of light You can
+use a
+prism to split white light into a spectrum This is called
+dispersion. The spectrum of white light is continuous There
+are no gaps between the colours Sir Isaac Newton first did this
+experiment in about 1666.
+Dispersion happens because different colours of light are refracted
+A
+prism splits white light into a
+by different amounts Violet is refracted the most and red is
+spectrum:
+refracted the least: Violet light has a higher frequency than red.
+Light with a higher frequency is refracted more than light with a
+lower frequency:
+A
+State what a
+does to light:
+Adding colours
+Red light has a lower frequency
+You can make all the colours of light from just three colours: red,
+than blue light:
+green; and blue These are called the primary colours of light:
+Your eye detects these three colours You can make any colour from
+different amounts of red, green, and blue: When you mix two primary
+red
+magenta
+blue
+colours you get secondary colours of light: cyan, yellow, and
+magenta You
+white light when you mix all three colours of light:
+white
+yellow
+cyan
+B Name the secondary colours of light:
+green
+Subtracting colours
+Coloured lights on a stage can make a spectacular display. White
+144
+This Venn diagram shows the primary
+light contains all the colours of light so if you want blue light you
+and secondary colours of light
+need to get rid of allthe other colours:
+big
+explain
+prism
+get
+
+P1 Chapter 3: Light
+What do filters do to light?
+A red filter subtracts colours from white light: It transmits red light
+Fantastic Factl
+and absorbs the rest: It does not change the colour of light: Ifyou
+You can never see a rainbow when the Sun
+a red and a green filter together no light would get through them:
+is in front of you:
+red filter
+green filter
+Key Words
+white light
+red light
+prism; spectrum; dispersion, continuous;
+no
+light
+frequency; primary colour; secondary
+colour, filter
+Filters transmit the colours that
+are and absorb the rest:
+Why are objects different colours?
+A red car reflects red light into your eyes When the white light from
+the Sun hits the car; the
+absorbs all the other colours except
+red:
+coloured object reflects the colour that it is and absorbs
+the rest: Black objects absorb allthe colours. White objects absorb
+no colours and reflect all the light:
+Summary Questions
+white light
+1
+Copy the sentences below;
+white light
+white light
+choosing the correct bold words.
+When white light goes through a
+prism, red light is reflected/
+refracted the mostlleast and
+violet light is refracted the mostl
+Black objects absorb all the colours of light and white objects
+least. This is called dispersion/
+reflect all the colours of light:
+refraction A green filter absorbsl
+transmits green light and
+white light
+absorbs/transmits the rest.
+red light
+A cyan object absorbshreflects
+An apple reflects red
+red light, absorbs/reflects blue
+light and absorbs the
+other colours.
+light; and absorbs/reflects green
+light:
+A
+magenta object would look
+black in bluelgreen light:
+(10 marks)
+What table?
+A student wants to record data in an experiment where she
+2
+Explain
+a green shirt
+iS
+shining all the primary and secondary colours of light onto
+looks black in red light:
+pieces of coloured material: Draw a table to show how she could
+(2 marks)
+record her results.
+3 A44
+Explain in detail why you
+cannot have a white filter or a
+black filter:
+c State what a black object does to white light:
+(6 marks QWC)
+145}
+put
+they
+paint
+Any
+why
+
+P1 Chapter 3 Summary
+Key Points
+Light_is emitted from luminous sources_It_can be transmitted through,
+reflected,or_absorbed bynon-luminous objects
+Objects are transparent,translucentor opaque
+Light travels through a vacuum at 300 000 km/s.
+light-year_is the distance light_travels_in one_year. Light-years are
+used to measure very large distances
+Your brain uses the fact that light travels in straight lines and You see a
+virtual image when you look in the mirror:
+The law of_reflection says that the_angle_of_incidence
+the angle of_reflection
+Images are formed when reflection is specular but not when there is diffuse scatter
+from
+a
+surface
+When _light slows down itis refracted towards the_normal
+lens can focus light to a focal
+Light enters
+eye through the pupil_The_cornea and lens focus light to produce
+a
+real_image_on_your_retina.A chemical_reaction in thephotoreceptors_in
+Bye
+produces an electrical signal. The signal travels down the optic nerve to your brain
+Light forms an image_in a camera in the same_Way:Digital cameras_store images
+produced when light hits a
+coupled device (CCD)
+Prisms disperse white light to
+a continuous
+spectrum_Primary colours of_
+Key Words
+light add up to make secondary colours All three colours add to make white light
+Filters and coloured objects subtract colours from white light by transmitting or
+source, emit, reflect; eye; absorb;
+reflecting the_colour that
+are and
+absorbing the rest
+luminous,non-luminous, transmit;
+transparent; translucent, opaque;
+umbra, penumbra, vacuum, wave;
+light-time, image, virtual, plane;
+write
+incident ray; reflected ray; normal,
+Big
+angle of incidence; angle of reflection;
+The big production
+law of reflection; specular reflection,
+theatre has asked you to come up with some ideas for a play
+diffuse scattering; refraction;
+about ghost hunters:
+medium; lens, convex, converging;
+focus, focal point; retina, iris, pupil;
+Task
+for your team to do some
+investigations to produce
+cornea, inverted, photoreceptor;
+Write a plan
+The effects could include reflection in mirrors and glass and
+nerve; brain; pinhole camera, real
+effects:
+different-coloured lights and materials
+(image), pixel, charge-coupled device
+(CCD), prism; spectrum, dispersion,
+Tips
+on the stage,you could design posters
+continuous, frequency, primary colour;
+As well as what happens
+secondary colour; filter
+146
+and programmes that look diferent in different-coloured lights
+equals
+ring
+point
+your
+your
+charg?-€
+produce
+thex
+special
+optic
+
+End-of-chapter questions
+1
+Mirrors reflect light: State which capital
+d
+Describe the relationship between the mass
+letters of the alphabet would look the same if
+and the angle of refraction.
+(1 mark)
+saw them in a mirror:
+e
+Describe one way that the student could
+(1 mark)
+improve the way that the results are
+presented in the table
+(1 mark)
+2
+An actor is wearing a uniform that has a
+(5 marks)
+blue jacket and red trousers. Suggest and
+explain what the audience would see if he stood
+5
+Copy and complete the diagram below
+on stage in:
+to show what happens when light goes
+through a lens.
+a
+white light
+(2 marks)
+(4 marks)
+b
+green light
+(2 marks)
+(4 marks)
+3
+A hunter is trying to spear a fish:
+Explain why he aims above where he sees
+the fish:
+(2 marks)
+b
+Explain why diving birds dive straight down
+to catch fish:
+(2 marks)
+(4 marks)
+4
+A student has collected data about
+6
+Light slows down from 300 000 km/s
+different types of plastic block He measured
+to 200 000 km/s in glass and to 226 000 km/s
+the mass and the angle of refraction of a ray of
+in water
+A ray of light enters each medium
+with an angle of incidence of 409. State and
+light going into the block: Each block is the
+same size.
+explain whether the angle of refraction would
+be bigger or smaller in water than in glass.
+Here are his results:
+(2 marks)
+Mass of block (g)
+Angle of refraction (0
+250
+27
+7
+Here is some information about
+220
+32
+the speed of light in different materials.
+275
+24
+Describe and explain what you would see if
+300
+21
+you shone rays of light through a lens made
+of each material.
+a
+State one variable that the student must
+the same
+during this investigation:
+Material
+Speed of light in the
+material (million kmls)
+(1 mark)
+diamond
+125
+b
+State the name of the independent variable.
+glass
+200
+(1 mark)
+plastic
+187
+C
+State the name of the dependent variable
+(1 mark)
+(6 marks QWC)
+147
+you
+keep
+
+4.1
+The night sky
+Learning objectives
+When you look at the stars in the night sky you do not see
+After this topic you will be able to:
+them as
+are
+today: The light from them has taken
+years to get here: You are looking back in time:
+describe the objects that you
+can see in the night sky
+Satellites
+describe the structure of the
+The nearest objects that you can see without a telescope are
+Universe:
+artificial satellites.
+orbit the Earth: You can see the
+International Space Station (ISS) with the naked eye (without
+binoculars or a telescope) The light reflected from the ISS reaches
+uS in a fraction of a second.
+Light reflected from the Moon reaches us in just over a second.
+The Moon orbits the Earth: It is the Earths only natural satellite.
+A
+Name the natural satellite that orbits the Earth:
+What is wandering across the sky?
+There are five planets that most people can see with the naked
+eye: Mercury; Venus; Mars, Jupiter; and Saturn: Like the Earth
+orbit the Sun. Venus gets closest to the Earth, about two light-
+minutes away: Light from Saturn takes about 1.5 hours The planets
+form part of the Solar System:
+An astronaut on a
+spacewalk is
+building
+of the ISS.
+B
+Name the
+planets that are visible to the naked eye:
+Comets and meteors
+A comet is one of the most spectacular sights in the night sky:
+The odds of
+killed by
+space
+are
+huge snowballs that orbit the Sun:
+debris are one in five billion:
+Meteors are bits of dust or rock that burn upas
+move
+through the Earth's atmosphere and produce streaks of light:
+meteor that makes it to the ground is called a meteorite
+Key Words
+c Describe how the appearance of a comet is different to
+artificial satellite, orbit; Earth; Moon;,
+the appearance of a meteor:
+natural satellite planet; Sun; Solar
+System;, comet, meteor, meteorite,
+star; galaxy; Milky
+Universe,
+astronomer
+148
+they
+They '
+using
+they
+part 
+Factl
+Foul
+being
+falling
+They
+they
+Any
+Way;
+
+P1
+Chapter 4: Space
+Lights in the
+Most of the dots of light that we see are stars in our galaxy, the
+Milky
+A galaxy is a collection of stars and there are billions of
+stars in the Milky
+Light takes about eight minutes to
+to us from the Sun; our nearest
+star Our next nearest star is over four
+light-years away:
+Comet Hale-Bopp was visible in the
+Sun
+night sky in 1997.
+Fantastic Factl
+This shows our Sun in our galaxy;
+All the elements that you are made of were
+the Milky
+made in the centre of stars in
+galaxies
+Some ofthe dots of light in the night sky are other galaxies
+A galaxy contains billions of stars. The Milky
+is just one of
+billions of galaxies that make up the Universe. Our nearest
+galaxy is Andromeda, which you can see with the naked eye: Light
+Summary Questions
+from Andromeda takes 2 million years to get to Earth_
+1
+Copy the sentences below;
+choosing the correct bold words.
+There are thousands of satellites in
+orbit around the Sun/Earth.
+The Moon is a natural satellite of
+the Sun/Earth: Comets are huge
+snowballs that orbit the Sun/Earth:
+Planets orbit the Sun/Earth:
+The Andromeda
+(4 marks)
+galaxy is the
+nearest large
+2
+Describe the difference
+galaxy to us.
+between a meteor and a
+meteorite.
+(2 marks)
+0
+State what is meant by a 'galaxy'.
+3
+When you look up at the
+night sky you see dots of light
+that don't appear to move. List
+How do we know?
+what the dots of light could be
+Astronomers have learned about the objects that we see in
+(2 marks)
+the night
+from the observations
+have made.You
+4 AAA compare the time it
+cannot do experiments in astronomy: Astronomers use models
+takes light to reach us from the
+to work out what makes up the Solar System, the Milky
+different objects that you can see
+and the Universe.
+in the night sky:
+(6 marks QWC)
+149
+sky
+Way:
+Way:
+get
+Way:
+Way
+large
+sky
+they
+Way;
+
+4.2
+The Solar System
+Learning objectives
+No-one has ever seen all of the Solar System at once
+After this topic you will be able to:
+because it is too big Scientists have used observations to
+build a model of the Solar System_
+name the objects in the
+Solar System
+What's in our Solar System?
+describe some similarities
+Starting from the Sun and moving outwards the Solar System
+and differences between the
+contains four inner planets and four outer planets All of the planets
+planets of the Solar System:
+orbit the Sun: Each orbit is a slightly squashed circle called an
+ellipse. Between the orbits of Mars and Jupiter there is an
+asteroid belt
+A
+State the number of planets in the Solar System:
+The planets
+The inner planets, Mercury, Venus; Earth; and Mars, are all
+These are NASA images of the
+terrestrial planets;
+are made of rock The conditions on the
+planets of the Solar System:
+planets are very different: Mercury does not have an atmosphere
+At night the temperature drops to -170 *Cand during the
+it
+can reach 430 *€. Venus has an
+atmosphere of carbon dioxide that
+traps energy from the Sun.
+Remember that order!
+Before Pluto was renamed a
+dwarf planet, people used to
+remember the order of the planets
+using this mnemonic:
+My
+Easy Method Just Speeds
+Up Naming Planets. A mnemonic
+uses first letters to make up a
+sentence. Make up your own
+mnemonic for the planets as
+are now: M,V,E M,], S; U,N.
+The Curiosity
+rover on Mars
+takes &
+picture
+of itself:
+The outer planets are called gas giants; they are made mainly of
+Key Words
+gases such as hydrogen and helium: All ofthe gas giants are very
+cold and are much bigger than the inner planets.
+ellipse, asteroid, Mercury; Venus; Mars,
+terrestrial gas giant; dwarf planet, gravity
+of the planets have moons in orbit around them: Saturn has
+150
+60 moons but Earth has only one:
+they
+day
+Very
+they
+Many =

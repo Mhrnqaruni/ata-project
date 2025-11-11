@@ -1,0 +1,34 @@
+# /ata-backend/pyproject.toml
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ata-backend"
+version = "0.1.0"
+requires-python = ">=3.10,<4.0"
+
+[tool.setuptools.packages.find]
+# This flat-layout configuration is correct.
+where = ["."]
+
+[tool.pytest.ini_options]
+# This section is the key to our fix.
+pythonpath = ["."]
+asyncio_mode = "auto"
+markers = [
+    "asyncio: marks tests as asyncio-driven, managed by pytest-asyncio",
+]
+
+# --- [THE FIX IS HERE] ---
+# The 'addopts' key is a list of command-line options for pytest.
+# By adding '-p pytest_asyncio' and '-p pytest_mock', we are EXPLICITLY
+# telling pytest to load these plugins. This bypasses any discovery issues.
+addopts = [
+    "-p", "pytest_asyncio",
+    "-p", "pytest_mock",
+    "--strict-markers", # This helps catch typos in marker names
+    "-rA", # This provides a more detailed report at the end of the test session
+]
+# --- [END OF FIX] ---

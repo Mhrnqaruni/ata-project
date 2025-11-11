@@ -1,0 +1,9 @@
+# System dependencies for the Python app
+[phases.setup]
+aptPkgs = ["tesseract-ocr", "libreoffice"]
+
+# Let Nixpacks auto-detect and handle Python installation
+# (Don't override the install phase - it will automatically run pip install -r requirements.txt)
+
+[start]
+cmd = "sh -c 'alembic upgrade head && gunicorn -k uvicorn.workers.UvicornWorker -w 4 -b 0.0.0.0:$PORT app.main:app'"
