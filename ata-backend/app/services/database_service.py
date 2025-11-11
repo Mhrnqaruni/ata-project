@@ -22,6 +22,8 @@ from .database_helpers.class_student_repository_sql import ClassStudentRepositor
 from .database_helpers.assessment_repository_sql import AssessmentRepositorySQL
 from .database_helpers.chat_repository_sql import ChatRepositorySQL
 from .database_helpers.generation_repository_sql import GenerationRepositorySQL
+from .database_helpers.quiz_repository_sql import QuizRepositorySQL
+from .database_helpers.quiz_session_repository_sql import QuizSessionRepositorySQL
 
 # --- Import SQLAlchemy Models for Accurate Type Hinting ---
 from app.db.models.user_model import User
@@ -31,6 +33,7 @@ from app.db.models.ai_model_run import AIModelRun
 from app.db.models.chat_models import ChatSession, ChatMessage
 from app.db.models.generation_models import Generation
 from app.db.models.outsider_student import OutsiderStudent
+from app.db.models.quiz_models import Quiz, QuizQuestion, QuizSession, QuizParticipant, QuizResponse
 
 
 class DatabaseService:
@@ -47,6 +50,8 @@ class DatabaseService:
         self.assessment_repo = AssessmentRepositorySQL(db_session)
         self.chat_repo = ChatRepositorySQL(db_session)
         self.generation_repo = GenerationRepositorySQL(db_session)
+        self.quiz_repo = QuizRepositorySQL(db_session)
+        self.quiz_session_repo = QuizSessionRepositorySQL(db_session)
 
     # --- NEW: User Management Methods ---
     def get_user_by_id(self, user_id: str) -> Optional[User]:
@@ -243,6 +248,148 @@ class DatabaseService:
             status=status,
             user_id=user_id
         )
+
+    # --- QUIZ METHODS ---
+
+    def create_quiz(self, quiz_record: Dict) -> Quiz:
+        return self.quiz_repo.create_quiz(quiz_record)
+
+    def get_quiz_by_id(self, quiz_id: str, user_id: str) -> Optional[Quiz]:
+        return self.quiz_repo.get_quiz_by_id(quiz_id, user_id)
+
+    def get_all_quizzes_by_user(self, user_id: str, status: Optional[str] = None) -> List[Quiz]:
+        return self.quiz_repo.get_all_quizzes_by_user(user_id, status)
+
+    def get_quizzes_by_class(self, class_id: str, user_id: str) -> List[Quiz]:
+        return self.quiz_repo.get_quizzes_by_class(class_id, user_id)
+
+    def update_quiz(self, quiz_id: str, user_id: str, data: Dict) -> Optional[Quiz]:
+        return self.quiz_repo.update_quiz(quiz_id, user_id, data)
+
+    def delete_quiz(self, quiz_id: str, user_id: str) -> bool:
+        return self.quiz_repo.delete_quiz(quiz_id, user_id)
+
+    def restore_quiz(self, quiz_id: str, user_id: str) -> bool:
+        return self.quiz_repo.restore_quiz(quiz_id, user_id)
+
+    def update_quiz_status(self, quiz_id: str, user_id: str, status: str) -> bool:
+        return self.quiz_repo.update_quiz_status(quiz_id, user_id, status)
+
+    def update_last_room_code(self, quiz_id: str, user_id: str, room_code: str) -> bool:
+        return self.quiz_repo.update_last_room_code(quiz_id, user_id, room_code)
+
+    def duplicate_quiz(self, quiz_id: str, user_id: str, new_title: str) -> Optional[Quiz]:
+        return self.quiz_repo.duplicate_quiz(quiz_id, user_id, new_title)
+
+    # --- QUIZ QUESTION METHODS ---
+
+    def add_question(self, question_record: Dict) -> QuizQuestion:
+        return self.quiz_repo.add_question(question_record)
+
+    def get_question_by_id(self, question_id: str, user_id: str) -> Optional[QuizQuestion]:
+        return self.quiz_repo.get_question_by_id(question_id, user_id)
+
+    def get_questions_by_quiz(self, quiz_id: str, user_id: str) -> List[QuizQuestion]:
+        return self.quiz_repo.get_questions_by_quiz(quiz_id, user_id)
+
+    def update_question(self, question_id: str, user_id: str, data: Dict) -> Optional[QuizQuestion]:
+        return self.quiz_repo.update_question(question_id, user_id, data)
+
+    def delete_question(self, question_id: str, user_id: str) -> bool:
+        return self.quiz_repo.delete_question(question_id, user_id)
+
+    def reorder_questions(self, quiz_id: str, user_id: str, question_ids: List[str]) -> bool:
+        return self.quiz_repo.reorder_questions(quiz_id, user_id, question_ids)
+
+    def get_question_count(self, quiz_id: str, user_id: str) -> int:
+        return self.quiz_repo.get_question_count(quiz_id, user_id)
+
+    # --- QUIZ SESSION METHODS ---
+
+    def create_quiz_session(self, session_record: Dict) -> QuizSession:
+        return self.quiz_session_repo.create_session(session_record)
+
+    def get_quiz_session_by_id(self, session_id: str, user_id: str) -> Optional[QuizSession]:
+        return self.quiz_session_repo.get_session_by_id(session_id, user_id)
+
+    def get_quiz_session_by_room_code(self, room_code: str) -> Optional[QuizSession]:
+        return self.quiz_session_repo.get_session_by_room_code(room_code)
+
+    def get_sessions_by_quiz(self, quiz_id: str, user_id: str) -> List[QuizSession]:
+        return self.quiz_session_repo.get_sessions_by_quiz(quiz_id, user_id)
+
+    def get_active_quiz_sessions(self, user_id: str) -> List[QuizSession]:
+        return self.quiz_session_repo.get_active_sessions_by_user(user_id)
+
+    def update_session_status(self, session_id: str, user_id: str, status: str) -> bool:
+        return self.quiz_session_repo.update_session_status(session_id, user_id, status)
+
+    def update_current_question(self, session_id: str, user_id: str, question_index: int) -> bool:
+        return self.quiz_session_repo.update_current_question(session_id, user_id, question_index)
+
+    def is_room_code_unique(self, room_code: str) -> bool:
+        return self.quiz_session_repo.is_room_code_unique(room_code)
+
+    def auto_end_quiz_session(self, session_id: str) -> bool:
+        return self.quiz_session_repo.auto_end_session(session_id)
+
+    # --- QUIZ PARTICIPANT METHODS ---
+
+    def add_quiz_participant(self, participant_record: Dict) -> QuizParticipant:
+        return self.quiz_session_repo.add_participant(participant_record)
+
+    def get_quiz_participant_by_id(self, participant_id: str) -> Optional[QuizParticipant]:
+        return self.quiz_session_repo.get_participant_by_id(participant_id)
+
+    def get_participant_by_guest_token(self, guest_token: str) -> Optional[QuizParticipant]:
+        return self.quiz_session_repo.get_participant_by_guest_token(guest_token)
+
+    def get_participants_by_session(self, session_id: str) -> List[QuizParticipant]:
+        return self.quiz_session_repo.get_participants_by_session(session_id)
+
+    def get_active_participants(self, session_id: str) -> List[QuizParticipant]:
+        return self.quiz_session_repo.get_active_participants_by_session(session_id)
+
+    def update_participant_status(self, participant_id: str, is_active: bool) -> bool:
+        return self.quiz_session_repo.update_participant_status(participant_id, is_active)
+
+    def update_participant_score(self, participant_id: str, points: int, time_ms: int, is_correct: bool) -> bool:
+        return self.quiz_session_repo.update_participant_score(participant_id, points, time_ms, is_correct)
+
+    def check_duplicate_participant(self, session_id: str, student_id: Optional[str] = None, guest_name: Optional[str] = None) -> Optional[QuizParticipant]:
+        return self.quiz_session_repo.check_duplicate_participant(session_id, student_id, guest_name)
+
+    def get_leaderboard(self, session_id: str, limit: Optional[int] = None) -> List[QuizParticipant]:
+        return self.quiz_session_repo.get_leaderboard(session_id, limit)
+
+    def get_participant_rank(self, participant_id: str, session_id: str) -> Optional[int]:
+        return self.quiz_session_repo.get_participant_rank(participant_id, session_id)
+
+    # --- QUIZ RESPONSE METHODS ---
+
+    def add_quiz_response(self, response_record: Dict) -> QuizResponse:
+        return self.quiz_session_repo.add_response(response_record)
+
+    def get_participant_answer(self, session_id: str, participant_id: str, question_id: str) -> Optional[QuizResponse]:
+        return self.quiz_session_repo.get_participant_answer(session_id, participant_id, question_id)
+
+    def get_all_responses_for_session(self, session_id: str) -> List[QuizResponse]:
+        return self.quiz_session_repo.get_all_responses_for_session(session_id)
+
+    def get_responses_for_participant(self, participant_id: str) -> List[QuizResponse]:
+        return self.quiz_session_repo.get_responses_for_participant(participant_id)
+
+    def get_responses_for_question(self, session_id: str, question_id: str) -> List[QuizResponse]:
+        return self.quiz_session_repo.get_responses_for_question(session_id, question_id)
+
+    def get_question_analytics(self, session_id: str, question_id: str) -> Dict:
+        return self.quiz_session_repo.get_question_analytics(session_id, question_id)
+
+    def get_participant_progress(self, participant_id: str, total_questions: int) -> Dict:
+        return self.quiz_session_repo.get_participant_progress(participant_id, total_questions)
+
+    def has_participant_answered(self, session_id: str, participant_id: str, question_id: str) -> bool:
+        return self.quiz_session_repo.has_participant_answered_question(session_id, participant_id, question_id)
 
 # --- SIMPLIFIED DEPENDENCY PROVIDER ---
 def get_db_service(db: Session = Depends(get_db)) -> Generator[DatabaseService, None, None]:
