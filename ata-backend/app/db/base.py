@@ -29,3 +29,9 @@ from .models.generation_models import Generation
 # aware of the new `users` table, allowing it to correctly generate the
 # database migration script for creating the table and linking foreign keys to it.
 from .models.user_model import User
+
+# --- [QUIZ SYSTEM MODELS] ---
+# Import all quiz system models to register them with Alembic for migration generation.
+# These models enable the complete quiz system with guest support, real-time sessions,
+# and comprehensive analytics.
+from .models.quiz_models import Quiz, QuizQuestion, QuizSession, QuizParticipant, QuizResponse
