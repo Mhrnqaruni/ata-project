@@ -40,6 +40,7 @@ import PublicReportView from './pages/public/ReportView';
 import Chatbot from './pages/Chatbot';
 import StudentProfile from './pages/StudentProfile';
 import AdminDashboard from './pages/AdminDashboard';
+import Quizzes from './pages/Quizzes';
 
 /**
  * A layout component that wraps all protected pages.
@@ -95,6 +96,7 @@ const ThemedApp = () => {
           <Route path="/assessments/new" element={<NewAssessmentV2 />} />
           <Route path="/assessments/:job_id/results" element={<AssessmentResultsPage />} />
           <Route path="/assessments/:job_id/review/:entity_id" element={<AssessmentReviewPage />} />
+          <Route path="/quizzes" element={<Quizzes />} />
           <Route path="/chat/:sessionId?" element={<Chatbot />} />
 
           {/* A catch-all route for any other path, rendered within the protected layout. */}
