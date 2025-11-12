@@ -41,6 +41,9 @@ import Chatbot from './pages/Chatbot';
 import StudentProfile from './pages/StudentProfile';
 import AdminDashboard from './pages/AdminDashboard';
 import Quizzes from './pages/Quizzes';
+import QuizBuilder from './pages/quizzes/QuizBuilder';
+import QuizHost from './pages/quizzes/QuizHost';
+import QuizParticipant from './pages/quizzes/QuizParticipant';
 
 /**
  * A layout component that wraps all protected pages.
@@ -74,6 +77,10 @@ const ThemedApp = () => {
         {/* This route is accessible to anyone, logged in or not. */}
         <Route path="/report/:report_token" element={<PublicReportView />} />
 
+        {/* --- QUIZ PARTICIPANT ROUTES (Public - No Auth Required) --- */}
+        <Route path="/quiz/join" element={<QuizParticipant />} />
+        <Route path="/quiz/join/:roomCode" element={<QuizParticipant />} />
+
         {/* --- ADMIN ROUTE (Special Protected Route) --- */}
         <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
 
@@ -97,6 +104,9 @@ const ThemedApp = () => {
           <Route path="/assessments/:job_id/results" element={<AssessmentResultsPage />} />
           <Route path="/assessments/:job_id/review/:entity_id" element={<AssessmentReviewPage />} />
           <Route path="/quizzes" element={<Quizzes />} />
+          <Route path="/quizzes/new" element={<QuizBuilder />} />
+          <Route path="/quizzes/:quizId/edit" element={<QuizBuilder />} />
+          <Route path="/quizzes/sessions/:sessionId/host" element={<QuizHost />} />
           <Route path="/chat/:sessionId?" element={<Chatbot />} />
 
           {/* A catch-all route for any other path, rendered within the protected layout. */}
