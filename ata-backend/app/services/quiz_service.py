@@ -27,6 +27,7 @@ from ..core.quiz_auth import (
     sanitize_participant_name
 )
 from ..core.quiz_config import quiz_settings
+from ..core.quiz_shuffling import apply_quiz_randomization
 from ..models.quiz_model import (
     QuestionType, QuizStatus, SessionStatus,
     QuizCreate, QuizUpdate, QuizQuestionCreate, QuizQuestionUpdate
@@ -601,3 +602,68 @@ def submit_answer_with_grading(participant_id: str, question_id: str, answer: Li
     }
 
     return result
+
+
+# ==================== QUESTION DELIVERY WITH RANDOMIZATION ====================
+
+def get_questions_for_participant(session_id: str, participant_id: str, db: DatabaseService) -> List[Dict]:
+    """
+    Get quiz questions for a participant with randomization applied.
+
+    Applies shuffling based on quiz settings:
+    - Question order shuffling
+    - Answer option shuffling
+    - Participant-specific deterministic seeds
+
+    Args:
+        session_id: Session ID
+        participant_id: Participant ID
+        db: Database service
+
+    Returns:
+        List of question dictionaries (participant view, no correct answers)
+
+    Note: Each participant gets questions in their own randomized order
+    """
+    # Get session
+    session = db.get_quiz_session_by_id(session_id)
+    if not session:
+        raise ValueError("Session not found")
+
+    # Get quiz questions
+    quiz = db.get_quiz_by_id(session.quiz_id, session.user_id)
+    questions = db.get_questions_by_quiz_id(session.quiz_id, session.user_id)
+
+    # Convert to dictionaries
+    question_dicts = []
+    for q in questions:
+        question_dicts.append({
+            "id": q.id,
+            "question_type": q.question_type,
+            "question_text": q.question_text,
+            "options": q.options if q.options else [],
+            "correct_answer": q.correct_answer if q.correct_answer else [],
+            "points": q.points,
+            "time_limit_seconds": q.time_limit_seconds,
+            "order_index": q.order_index,
+            "explanation": q.explanation,
+            "media_url": q.media_url
+        })
+
+    # Apply randomization if enabled in quiz settings
+    if quiz and quiz.settings:
+        randomized = apply_quiz_randomization(
+            question_dicts,
+            quiz.settings,
+            participant_id=participant_id,
+            session_id=session_id
+        )
+    else:
+        randomized = question_dicts
+
+    # Remove correct answers for participant view
+    for q in randomized:
+        q.pop('correct_answer', None)
+        q.pop('explanation', None)  # Don't show until after answer
+
+    return randomized
