@@ -35,7 +35,8 @@ from .routers import (
     admin_router,
     quiz_router,
     quiz_session_router,
-    quiz_analytics_router
+    quiz_analytics_router,
+    quiz_websocket_router
 )
 
 # --- Service Imports for Startup Logic ---
@@ -116,6 +117,9 @@ app.include_router(page_count_router.router, prefix="/api/page-count", tags=["Pa
 app.include_router(quiz_router.router, prefix="/api/quizzes", tags=["Quizzes"])
 app.include_router(quiz_session_router.router, prefix="/api/quiz-sessions", tags=["Quiz Sessions"])
 app.include_router(quiz_analytics_router.router, prefix="/api/quiz-analytics", tags=["Quiz Analytics"])
+
+# --- Quiz WebSocket Route (Real-time Communication) ---
+app.include_router(quiz_websocket_router.router, prefix="/api/ws", tags=["Quiz WebSocket"])
 
 # --- Publicly Accessible Routes (Do Not Require User Login) ---
 # These routes are for resources that are intentionally public, like shareable reports.

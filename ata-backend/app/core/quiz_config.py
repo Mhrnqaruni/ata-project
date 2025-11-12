@@ -131,6 +131,14 @@ class QuizSettings(BaseSettings):
     # WebSocket connection timeout (seconds)
     WEBSOCKET_TIMEOUT_SECONDS: int = 60
 
+    # WebSocket heartbeat/ping interval (seconds)
+    # Send ping every N seconds to detect connection health
+    WEBSOCKET_HEARTBEAT_INTERVAL_SECONDS: int = 30
+
+    # WebSocket heartbeat timeout (seconds)
+    # Close connection if no pong received within this time
+    WEBSOCKET_HEARTBEAT_TIMEOUT_SECONDS: int = 90
+
     # Maximum message size for WebSocket (bytes)
     MAX_WEBSOCKET_MESSAGE_SIZE_BYTES: int = 1048576  # 1 MB
 
