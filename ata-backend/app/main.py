@@ -32,7 +32,9 @@ from .routers import (
     auth_router,
     students_router,
     page_count_router,
-    admin_router
+    admin_router,
+    quiz_router,
+    quiz_session_router
 )
 
 # --- Service Imports for Startup Logic ---
@@ -108,6 +110,10 @@ app.include_router(chatbot_router.router, prefix="/api/chatbot", tags=["Chatbot"
 app.include_router(library_router.router, prefix="/api/library", tags=["Curriculum Library"])
 app.include_router(history_router.router, prefix="/api/history", tags=["Generation History"])
 app.include_router(page_count_router.router, prefix="/api/page-count", tags=["Page Counting"])
+
+# --- Quiz System Routes (Authentication Required for Hosts) ---
+app.include_router(quiz_router.router, prefix="/api/quizzes", tags=["Quizzes"])
+app.include_router(quiz_session_router.router, prefix="/api/quiz-sessions", tags=["Quiz Sessions"])
 
 # --- Publicly Accessible Routes (Do Not Require User Login) ---
 # These routes are for resources that are intentionally public, like shareable reports.
