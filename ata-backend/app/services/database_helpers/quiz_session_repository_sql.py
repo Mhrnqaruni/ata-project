@@ -394,6 +394,9 @@ class QuizSessionRepositorySQL:
         """
         Update participant's score and stats after answering a question.
 
+        FIX #2: Uses pessimistic locking (SELECT FOR UPDATE) to prevent race conditions
+        when multiple participants submit answers simultaneously.
+
         Args:
             participant_id: Participant ID
             points_earned: Points earned for this answer
@@ -403,10 +406,27 @@ class QuizSessionRepositorySQL:
         Returns:
             Updated QuizParticipant instance or None if not found
 
-        Note: Incremental update for real-time leaderboard efficiency
+        Note: Row-level lock ensures atomicity in concurrent score updates
         """
-        participant = self.get_participant_by_id(participant_id)
-        if participant:
+        import logging
+        logger = logging.getLogger(__name__)
+
+        try:
+            # FIX #2: Lock the row with SELECT FOR UPDATE to prevent race conditions
+            # This prevents other transactions from modifying this participant
+            # until our transaction commits
+            participant = self.db.query(QuizParticipant).filter(
+                QuizParticipant.id == participant_id
+            ).with_for_update().first()
+
+            if not participant:
+                logger.warning(f"[ScoreUpdate] Participant not found: {participant_id}")
+                return None
+
+            logger.info(f"[ScoreUpdate] Participant {participant_id}: "
+                       f"+{points_earned} pts, correct={is_correct}, time={time_taken_ms}ms")
+
+            # Perform updates while holding the lock
             participant.score += points_earned
             if is_correct:
                 participant.correct_answers += 1
@@ -415,7 +435,16 @@ class QuizSessionRepositorySQL:
 
             self.db.commit()
             self.db.refresh(participant)
-        return participant
+
+            logger.info(f"[ScoreUpdate] Success. Total: {participant.score} pts, "
+                       f"{participant.correct_answers} correct")
+
+            return participant
+
+        except Exception as e:
+            logger.error(f"[ScoreUpdate] Error: {e}", exc_info=True)
+            self.db.rollback()
+            raise
 
     def mark_participant_inactive(self, participant_id: str) -> bool:
         """

@@ -15,7 +15,11 @@ Pattern: Service methods accept primitive types/dicts and return ORM models or d
 from typing import List, Dict, Optional, Tuple
 import string
 import re
+import logging
 from datetime import datetime
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 # Core dependencies
 from .database_service import DatabaseService
@@ -259,28 +263,37 @@ def create_session_with_room_code(quiz_id: str, user_id: str, db: DatabaseServic
         ValueError: If quiz validation fails
         RuntimeError: If room code generation fails
     """
+    logger.info(f"[SessionCreate] Creating session for quiz {quiz_id}, user {user_id}")
+
     # Validate quiz exists and is published
     quiz = db.get_quiz_by_id(quiz_id, user_id)
     if not quiz:
+        logger.warning(f"[SessionCreate] Quiz not found: {quiz_id}")
         raise ValueError("Quiz not found")
 
     if quiz.status != QuizStatus.PUBLISHED:
+        logger.warning(f"[SessionCreate] Quiz not published: {quiz_id}, status={quiz.status}")
         raise ValueError("Can only create sessions for published quizzes")
 
     # Validate quiz has questions
     questions = db.get_questions_by_quiz_id(quiz_id, user_id)
     if not questions:
+        logger.warning(f"[SessionCreate] Quiz has no questions: {quiz_id}")
         raise ValueError("Cannot start session for quiz with no questions")
+
+    logger.info(f"[SessionCreate] Quiz validated: {len(questions)} questions")
 
     # Check concurrent session limit
     active_sessions = db.get_active_quiz_sessions(user_id)
     if len(active_sessions) >= quiz_settings.MAX_CONCURRENT_SESSIONS_PER_USER:
+        logger.warning(f"[SessionCreate] User {user_id} has too many active sessions: {len(active_sessions)}")
         raise ValueError(
             f"Maximum of {quiz_settings.MAX_CONCURRENT_SESSIONS_PER_USER} concurrent sessions allowed"
         )
 
     # Generate unique room code
     room_code = generate_unique_room_code(db)
+    logger.info(f"[SessionCreate] Generated room code: {room_code}")
 
     # Create config snapshot (freeze quiz state)
     config_snapshot = {
@@ -304,6 +317,8 @@ def create_session_with_room_code(quiz_id: str, user_id: str, db: DatabaseServic
     # Update quiz with last room code
     db.update_last_room_code(quiz_id, user_id, room_code)
 
+    logger.info(f"[SessionCreate] Success: session_id={session.id}, room_code={room_code}")
+
     return session
 
 
@@ -322,11 +337,15 @@ def start_session(session_id: str, user_id: str, db: DatabaseService) -> QuizSes
     Raises:
         ValueError: If validation fails
     """
+    logger.info(f"[SessionStart] Starting session {session_id} for user {user_id}")
+
     session = db.get_quiz_session_by_id(session_id, user_id)
     if not session:
+        logger.warning(f"[SessionStart] Session not found: {session_id}")
         raise ValueError("Session not found")
 
     if session.status != SessionStatus.WAITING:
+        logger.warning(f"[SessionStart] Invalid status: session={session_id}, status={session.status}")
         raise ValueError(f"Can only start sessions in 'waiting' status, current: {session.status}")
 
     # Start at first question
@@ -335,6 +354,8 @@ def start_session(session_id: str, user_id: str, db: DatabaseService) -> QuizSes
         "started_at": datetime.now(),
         "current_question_index": 0
     })
+
+    logger.info(f"[SessionStart] Success: session_id={session_id}, room_code={session.room_code}")
 
     return session
 
@@ -355,16 +376,24 @@ def end_session(session_id: str, user_id: str, db: DatabaseService, reason: str 
     Raises:
         ValueError: If validation fails
     """
+    logger.info(f"[SessionEnd] Ending session {session_id}, reason={reason}")
+
     session = db.get_quiz_session_by_id(session_id, user_id)
     if not session:
+        logger.warning(f"[SessionEnd] Session not found: {session_id}")
         raise ValueError("Session not found")
 
     if session.status not in [SessionStatus.WAITING, SessionStatus.ACTIVE]:
+        logger.warning(f"[SessionEnd] Invalid status: session={session_id}, status={session.status}")
         raise ValueError(f"Cannot end session in '{session.status}' status")
 
     status = SessionStatus.COMPLETED if reason == "completed" else SessionStatus.CANCELLED
 
-    return db.update_quiz_session_status(session_id, user_id, status)
+    result = db.update_quiz_session_status(session_id, user_id, status)
+
+    logger.info(f"[SessionEnd] Success: session_id={session_id}, final_status={status}")
+
+    return result
 
 
 # ==================== PARTICIPANT MANAGEMENT ====================
@@ -384,21 +413,27 @@ def join_session_as_guest(room_code: str, guest_name: str, db: DatabaseService) 
     Raises:
         ValueError: If validation fails
     """
+    logger.info(f"[GuestJoin] Guest '{guest_name}' attempting to join room: {room_code}")
+
     # Validate room code format
     if not is_valid_room_code_format(room_code):
+        logger.warning(f"[GuestJoin] Invalid room code format: {room_code}")
         raise ValueError("Invalid room code format")
 
     # Find session
     session = db.get_quiz_session_by_room_code(room_code)
     if not session:
+        logger.warning(f"[GuestJoin] Session not found for room code: {room_code}")
         raise ValueError("Session not found")
 
     if session.status not in [SessionStatus.WAITING, SessionStatus.ACTIVE]:
+        logger.warning(f"[GuestJoin] Invalid session status: room={room_code}, status={session.status}")
         raise ValueError(f"Cannot join session in '{session.status}' status")
 
     # Check participant limit
     participants = db.get_participants_by_session(session.id, active_only=True)
     if len(participants) >= quiz_settings.MAX_PARTICIPANTS_PER_SESSION:
+        logger.warning(f"[GuestJoin] Session full: room={room_code}, participants={len(participants)}")
         raise ValueError(
             f"Session is full (max {quiz_settings.MAX_PARTICIPANTS_PER_SESSION} participants)"
         )
@@ -407,6 +442,9 @@ def join_session_as_guest(room_code: str, guest_name: str, db: DatabaseService) 
     guest_name = sanitize_participant_name(guest_name)
     existing_names = db.get_participant_names_in_session(session.id)
     unique_name = handle_duplicate_name(guest_name, existing_names)
+
+    if unique_name != guest_name:
+        logger.info(f"[GuestJoin] Name modified to ensure uniqueness: '{guest_name}' -> '{unique_name}'")
 
     # Generate guest token
     guest_token = generate_guest_token()
@@ -423,6 +461,8 @@ def join_session_as_guest(room_code: str, guest_name: str, db: DatabaseService) 
         "is_active": True
     }
     participant = db.add_quiz_participant(participant_data)
+
+    logger.info(f"[GuestJoin] Success: participant_id={participant.id}, name={unique_name}, session={session.id}")
 
     return participant, guest_token
 
@@ -554,26 +594,36 @@ def submit_answer_with_grading(participant_id: str, question_id: str, answer: Li
     Raises:
         ValueError: If validation fails
     """
+    logger.info(f"[AnswerSubmit] Participant {participant_id} submitting answer for question {question_id}")
+
     # Get participant
     participant = db.get_participant_by_id(participant_id)
     if not participant:
+        logger.warning(f"[AnswerSubmit] Participant not found: {participant_id}")
         raise ValueError("Participant not found")
 
     if not participant.is_active:
+        logger.warning(f"[AnswerSubmit] Participant not active: {participant_id}")
         raise ValueError("Participant is not active")
 
-    # Check if already answered
+    # Check if already answered (FIX #9: Duplicate prevention)
     existing = db.get_participant_response_for_question(participant_id, question_id)
     if existing:
+        logger.warning(f"[AnswerSubmit] Duplicate answer attempt: participant={participant_id}, question={question_id}")
         raise ValueError("Question already answered")
 
     # Get question
     question = db.get_question_by_id(question_id)
     if not question:
+        logger.warning(f"[AnswerSubmit] Question not found: {question_id}")
         raise ValueError("Question not found")
+
+    logger.info(f"[AnswerSubmit] Grading answer: type={question.question_type}, time={time_taken_ms}ms")
 
     # Grade answer
     is_correct, points_earned = grade_answer(question, answer)
+
+    logger.info(f"[AnswerSubmit] Grade result: correct={is_correct}, points={points_earned}")
 
     # Save response
     response_data = {
@@ -589,6 +639,8 @@ def submit_answer_with_grading(participant_id: str, question_id: str, answer: Li
 
     # Update participant score
     db.update_participant_score(participant_id, points_earned, is_correct or False, time_taken_ms)
+
+    logger.info(f"[AnswerSubmit] Success: response_id={response.id}, participant={participant_id}")
 
     # Build result
     result = {

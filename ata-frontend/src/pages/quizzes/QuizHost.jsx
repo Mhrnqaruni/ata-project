@@ -141,21 +141,39 @@ const QuizHost = () => {
 
   // Load session data
   useEffect(() => {
+    console.log('[QuizHost] Mounting component, sessionId:', sessionId);
     loadSession();
+
+    // FIX #3: Cleanup function to prevent memory leaks
     return () => {
-      // Cleanup WebSocket on unmount
-      if (wsRef.current) {
+      console.log('[QuizHost] Component unmounting, cleaning up WebSocket');
+      if (wsRef.current && wsRef.current.readyState !== WebSocket.CLOSED) {
         wsRef.current.close();
+        wsRef.current = null;
       }
     };
   }, [sessionId]);
 
-  // Connect WebSocket
+  // Connect WebSocket - FIX #3: Only reconnect when session.id changes, not entire object
   useEffect(() => {
-    if (session) {
-      connectWebSocket();
+    if (!session?.id) {
+      console.log('[QuizHost] No session ID, skipping WebSocket connection');
+      return;
     }
-  }, [session]);
+
+    console.log('[QuizHost] Session loaded, connecting WebSocket for session:', session.id);
+    connectWebSocket();
+
+    // FIX #3: Cleanup function to close WebSocket when effect re-runs or unmounts
+    return () => {
+      console.log('[QuizHost] WebSocket effect cleanup');
+      if (wsRef.current && wsRef.current.readyState !== WebSocket.CLOSED) {
+        console.log('[QuizHost] Closing WebSocket connection');
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+    };
+  }, [session?.id]); // Only re-run when session.id changes, not entire session object
 
   const loadSession = async () => {
     try {

@@ -438,22 +438,45 @@ const quizService = {
    * @returns {WebSocket} WebSocket connection
    */
   connectWebSocket: (sessionId, token, isHost = false) => {
-    const wsBaseUrl = import.meta.env.VITE_API_BASE_URL.replace('http', 'ws');
+    // FIX #1 & #5: Validate environment variable and construct proper WebSocket URL
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+
+    if (!apiBaseUrl) {
+      const error = new Error("VITE_API_BASE_URL is not set. Please check your .env.local file.");
+      console.error('[WebSocket] Configuration error:', error.message);
+      throw error;
+    }
+
+    // Convert http:// or https:// to ws:// or wss://
+    // CRITICAL: https:// MUST become wss:// for secure WebSocket connections
+    const wsBaseUrl = apiBaseUrl.replace(/^https?/, (match) => {
+      return match === 'https' ? 'wss' : 'ws';
+    });
+
     const queryParam = isHost ? `token=${token}` : `guest_token=${token}`;
     const wsUrl = `${wsBaseUrl}/api/ws/quiz-sessions/${sessionId}?${queryParam}`;
+
+    // Log connection attempt (without exposing token)
+    const safeUrl = `${wsBaseUrl}/api/ws/quiz-sessions/${sessionId}?${isHost ? 'token' : 'guest_token'}=***`;
+    console.log(`[WebSocket] Connecting as ${isHost ? 'HOST' : 'PARTICIPANT'} to:`, safeUrl);
 
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
-      console.log('WebSocket connected to quiz session:', sessionId);
+      console.log(`[WebSocket] ✅ Connected successfully to session: ${sessionId}`);
+      console.log(`[WebSocket] Protocol: ${ws.protocol}, Ready state: ${ws.readyState}`);
     };
 
     ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
+      console.error('[WebSocket] ❌ Connection error:', error);
+      console.error('[WebSocket] Session ID:', sessionId);
+      console.error('[WebSocket] Role:', isHost ? 'HOST' : 'PARTICIPANT');
     };
 
-    ws.onclose = () => {
-      console.log('WebSocket disconnected from quiz session:', sessionId);
+    ws.onclose = (event) => {
+      console.log(`[WebSocket] 🔌 Disconnected from session: ${sessionId}`);
+      console.log(`[WebSocket] Close code: ${event.code}, reason: ${event.reason || 'None'}`);
+      console.log(`[WebSocket] Clean closure: ${event.wasClean}`);
     };
 
     return ws;

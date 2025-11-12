@@ -390,7 +390,9 @@ async def _handle_submit_answer(
     db: DatabaseService
 ) -> None:
     """
-    Handle answer submission from participant.
+    Handle answer submission from participant via WebSocket.
+
+    FIX #9 & #10: Complete implementation with duplicate prevention and grading.
 
     Args:
         websocket: WebSocket connection
@@ -405,37 +407,85 @@ async def _handle_submit_answer(
         answer = message.get("answer")
         time_taken_ms = message.get("time_taken_ms", 0)
 
+        logger.info(f"[WebSocket] Answer submission: participant={participant_id}, "
+                   f"question={question_id}, time={time_taken_ms}ms")
+
         if not question_id or answer is None:
+            logger.warning(f"[WebSocket] Invalid answer data from participant {participant_id}")
             await connection_manager.send_personal_message(
                 websocket,
                 build_error_message("invalid_answer", "Missing question_id or answer")
             )
             return
 
-        # Submit answer via service
-        # Note: This is a simplified version, actual implementation would use quiz_service
-        # For now, just acknowledge receipt
-        await connection_manager.send_personal_message(websocket, {
-            "type": "answer_submitted",
-            "question_id": question_id,
-            "timestamp": datetime.utcnow().isoformat()
-        })
+        # FIX #9 & #10: Submit answer with grading (includes duplicate check)
+        try:
+            result = quiz_service.submit_answer_with_grading(
+                participant_id, question_id, answer, time_taken_ms, db
+            )
 
-        # Broadcast to hosts that answer was received
-        await connection_manager.broadcast_to_hosts(session_id, {
-            "type": MessageType.PARTICIPANT_ANSWERED,
-            "participant_id": participant_id,
-            "question_id": question_id,
-            "timestamp": datetime.utcnow().isoformat()
-        })
+            logger.info(f"[WebSocket] Answer graded: participant={participant_id}, "
+                       f"correct={result['is_correct']}, points={result['points_earned']}")
 
-        # TODO: Integrate with quiz_service.submit_answer()
-        # response = quiz_service.submit_answer(...)
-        # await connection_manager.broadcast_to_room(session_id, leaderboard_update)
+            # Send result to participant
+            await connection_manager.send_personal_message(websocket, {
+                "type": "answer_submitted",
+                "question_id": question_id,
+                "is_correct": result['is_correct'],
+                "points_earned": result['points_earned'],
+                "correct_answer": result.get('correct_answer'),
+                "timestamp": datetime.utcnow().isoformat()
+            })
+
+            # Broadcast to hosts that answer was received
+            await connection_manager.broadcast_to_hosts(session_id, {
+                "type": MessageType.PARTICIPANT_ANSWERED,
+                "participant_id": participant_id,
+                "question_id": question_id,
+                "is_correct": result['is_correct'],
+                "timestamp": datetime.utcnow().isoformat()
+            })
+
+            # FIX #10: Get updated leaderboard and broadcast to everyone
+            top_participants = db.get_leaderboard(session_id, limit=10)
+            leaderboard_data = [
+                {
+                    "rank": rank,
+                    "participant_id": p.id,
+                    "display_name": p.guest_name or "Student",
+                    "score": p.score,
+                    "correct_answers": p.correct_answers,
+                    "total_time_ms": p.total_time_ms
+                }
+                for rank, p in enumerate(top_participants, start=1)
+            ]
+
+            logger.info(f"[WebSocket] Broadcasting updated leaderboard to session {session_id}")
+            await connection_manager.broadcast_to_room(
+                session_id,
+                build_leaderboard_update_message(leaderboard_data)
+            )
+
+        except ValueError as ve:
+            # FIX #9: Business logic errors (duplicate answer, invalid question, etc.)
+            logger.warning(f"[WebSocket] Validation error: {ve}")
+            await connection_manager.send_personal_message(
+                websocket,
+                build_error_message("validation_error", str(ve))
+            )
+        except Exception as db_error:
+            # Database or unexpected errors
+            logger.error(f"[WebSocket] Database error during answer submission: {db_error}",
+                        exc_info=True)
+            await connection_manager.send_personal_message(
+                websocket,
+                build_error_message("submission_error",
+                                   "Failed to submit answer. Please try again.")
+            )
 
     except Exception as e:
-        logger.error(f"Error handling answer submission: {e}")
+        logger.error(f"[WebSocket] Unexpected error in answer submission: {e}", exc_info=True)
         await connection_manager.send_personal_message(
             websocket,
-            build_error_message("submission_error", str(e))
+            build_error_message("submission_error", "An unexpected error occurred.")
         )

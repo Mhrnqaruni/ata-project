@@ -398,60 +398,94 @@ const QuizParticipant = () => {
   const [timeRemaining, setTimeRemaining] = useState(30);
   const [error, setError] = useState(null);
 
+  // FIX #3: Cleanup WebSocket and timer on unmount to prevent memory leaks
   useEffect(() => {
+    console.log('[QuizParticipant] Component mounted');
+
     return () => {
-      // Cleanup WebSocket and timer
+      console.log('[QuizParticipant] Component unmounting, cleaning up resources');
+
+      // Cleanup WebSocket
       if (wsRef.current) {
-        wsRef.current.close();
+        if (wsRef.current.readyState !== WebSocket.CLOSED) {
+          console.log('[QuizParticipant] Closing WebSocket connection');
+          wsRef.current.close();
+        }
+        wsRef.current = null;
       }
+
+      // Cleanup timer
       if (timerRef.current) {
+        console.log('[QuizParticipant] Clearing timer interval');
         clearInterval(timerRef.current);
+        timerRef.current = null;
       }
     };
   }, []);
 
   const handleJoin = (joinResponse) => {
+    console.log('[QuizParticipant] Join successful:', {
+      sessionId: joinResponse.session.id,
+      participantId: joinResponse.participant.id,
+      participantName: joinResponse.participant.guest_name,
+      roomCode: joinResponse.session.room_code
+    });
+
     setSession(joinResponse.session);
     setParticipant(joinResponse.participant);
     setGuestToken(joinResponse.guest_token);
     setPhase('waiting');
+
+    console.log('[QuizParticipant] Phase changed to: waiting');
 
     // Connect WebSocket
     connectWebSocket(joinResponse.session.id, joinResponse.guest_token);
   };
 
   const connectWebSocket = (sessionId, token) => {
+    console.log('[QuizParticipant] Connecting WebSocket for session:', sessionId);
+
     try {
       const ws = quizService.connectWebSocket(sessionId, token, false);
       wsRef.current = ws;
 
       ws.onmessage = (event) => {
+        console.log('[QuizParticipant] WebSocket message received');
         const message = JSON.parse(event.data);
         handleWebSocketMessage(message);
       };
 
       ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
+        console.error('[QuizParticipant] ❌ WebSocket error:', error);
       };
 
-      ws.onclose = () => {
-        console.log('WebSocket disconnected');
+      ws.onclose = (event) => {
+        console.log(`[QuizParticipant] 🔌 WebSocket disconnected - Code: ${event.code}, Clean: ${event.wasClean}`);
       };
+
+      console.log('[QuizParticipant] WebSocket connection initiated');
     } catch (err) {
-      console.error("Failed to connect WebSocket:", err);
+      console.error('[QuizParticipant] Failed to connect WebSocket:', err);
       setError("Failed to establish real-time connection.");
     }
   };
 
   const handleWebSocketMessage = (message) => {
-    console.log('WebSocket message:', message);
+    console.log('[QuizParticipant] Processing WebSocket message:', message.type);
 
     switch (message.type) {
       case 'session_started':
+        console.log('[QuizParticipant] Session started');
         setPhase('waiting');
         break;
 
       case 'question_started':
+        console.log('[QuizParticipant] Question started:', {
+          questionId: message.question.id,
+          questionText: message.question.text,
+          timeLimit: message.question.time_limit_seconds,
+          points: message.question.points
+        });
         setCurrentQuestion(message.question);
         setTimeRemaining(message.question.time_limit_seconds);
         setPhase('question');
@@ -459,19 +493,26 @@ const QuizParticipant = () => {
         break;
 
       case 'leaderboard_update':
+        console.log('[QuizParticipant] Leaderboard update received:', {
+          participantCount: message.leaderboard?.length || 0
+        });
         setLeaderboard(message.leaderboard || []);
         setPhase('leaderboard');
+        console.log('[QuizParticipant] Phase changed to: leaderboard (auto-advance in 10s)');
         // Auto-advance to next question after 10 seconds
         setTimeout(() => {
+          console.log('[QuizParticipant] Auto-advancing from leaderboard to waiting');
           setPhase('waiting');
         }, 10000);
         break;
 
       case 'session_ended':
+        console.log('[QuizParticipant] Session ended');
         setPhase('finished');
         break;
 
       case 'ping':
+        console.log('[QuizParticipant] Heartbeat ping received, sending pong');
         // Respond to heartbeat
         if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
           wsRef.current.send(JSON.stringify({ type: 'pong' }));
@@ -479,12 +520,15 @@ const QuizParticipant = () => {
         break;
 
       default:
-        console.log('Unknown message type:', message.type);
+        console.warn('[QuizParticipant] Unknown message type:', message.type);
     }
   };
 
   const startTimer = (duration) => {
+    console.log('[QuizParticipant] Starting timer:', duration, 'seconds');
+
     if (timerRef.current) {
+      console.log('[QuizParticipant] Clearing existing timer');
       clearInterval(timerRef.current);
     }
 
@@ -496,14 +540,23 @@ const QuizParticipant = () => {
       setTimeRemaining(remaining);
 
       if (remaining <= 0) {
+        console.log('[QuizParticipant] Timer expired');
         clearInterval(timerRef.current);
       }
     }, 1000);
   };
 
   const handleAnswer = async (answerIndex) => {
+    console.log('[QuizParticipant] Submitting answer:', {
+      questionId: currentQuestion.id,
+      answerIndex: answerIndex,
+      timeRemaining: timeRemaining
+    });
+
     try {
       const timeTaken = (currentQuestion.time_limit_seconds - timeRemaining) * 1000;
+
+      console.log('[QuizParticipant] Time taken:', timeTaken, 'ms');
 
       await quizService.submitAnswer(
         session.id,
@@ -515,12 +568,15 @@ const QuizParticipant = () => {
         guestToken
       );
 
+      console.log('[QuizParticipant] ✅ Answer submitted successfully');
+
       // Clear timer
       if (timerRef.current) {
+        console.log('[QuizParticipant] Clearing timer after answer submission');
         clearInterval(timerRef.current);
       }
     } catch (err) {
-      console.error("Failed to submit answer:", err);
+      console.error('[QuizParticipant] ❌ Failed to submit answer:', err);
       setError(err.message || "Failed to submit answer.");
     }
   };

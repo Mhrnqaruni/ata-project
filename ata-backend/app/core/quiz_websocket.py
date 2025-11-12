@@ -311,14 +311,25 @@ class ConnectionManager:
         """
         Monitor connection health with ping/pong heartbeat.
 
+        FIX #6: Enhanced logging for better connection health monitoring.
+
         Args:
             websocket: WebSocket to monitor
         """
+        metadata = self.connections.get(websocket)
+        session_id = metadata.get("session_id") if metadata else "unknown"
+        role = metadata.get("role") if metadata else "unknown"
+
+        logger.info(f"[Heartbeat] Starting monitor for session {session_id}, role {role}")
+
         try:
+            ping_count = 0
             while True:
                 await asyncio.sleep(self.heartbeat_interval)
+                ping_count += 1
 
                 # Send ping
+                logger.debug(f"[Heartbeat] Sending ping #{ping_count} to session {session_id}")
                 await self.send_personal_message(websocket, {
                     "type": MessageType.PING,
                     "timestamp": datetime.utcnow().isoformat()
@@ -333,18 +344,23 @@ class ConnectionManager:
 
                         if elapsed > self.heartbeat_timeout:
                             logger.warning(
-                                f"Heartbeat timeout for session {metadata.get('session_id')}, "
-                                f"closing connection"
+                                f"[Heartbeat] TIMEOUT for session {metadata.get('session_id')}, "
+                                f"role {metadata.get('role')}, elapsed {elapsed:.1f}s > {self.heartbeat_timeout}s"
                             )
                             session_id = metadata.get("session_id")
                             await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
                             self.disconnect(websocket, session_id)
                             break
+                        else:
+                            logger.debug(
+                                f"[Heartbeat] Healthy - session {session_id}, last seen {elapsed:.1f}s ago"
+                            )
         except asyncio.CancelledError:
             # Task cancelled during disconnect, normal cleanup
+            logger.info(f"[Heartbeat] Monitor cancelled for session {session_id} (normal cleanup)")
             pass
         except Exception as e:
-            logger.error(f"Heartbeat monitor error: {e}")
+            logger.error(f"[Heartbeat] Monitor error for session {session_id}: {e}", exc_info=True)
             metadata = self.connections.get(websocket)
             if metadata:
                 self.disconnect(websocket, metadata.get("session_id"))
@@ -353,11 +369,18 @@ class ConnectionManager:
         """
         Update last heartbeat timestamp for a connection.
 
+        FIX #6: Enhanced logging for heartbeat tracking.
+
         Args:
             websocket: WebSocket that sent pong
         """
         if websocket in self.connections:
             self.connections[websocket]["last_heartbeat"] = datetime.utcnow()
+            metadata = self.connections[websocket]
+            logger.debug(
+                f"[Heartbeat] Pong received from session {metadata.get('session_id')}, "
+                f"role {metadata.get('role')}"
+            )
 
     def get_room_stats(self, session_id: str) -> Dict[str, int]:
         """
