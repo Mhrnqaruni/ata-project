@@ -208,7 +208,10 @@ const quizService = {
    */
   endSession: async (sessionId) => {
     try {
-      const response = await apiClient.post(`/api/quiz-sessions/${sessionId}/end`);
+      // FIX: Send request body to match backend Pydantic model
+      const response = await apiClient.post(`/api/quiz-sessions/${sessionId}/end`, {
+        reason: "completed"
+      });
       return response.data;
     } catch (error) {
       console.error(`Error ending session ${sessionId}:`, error);

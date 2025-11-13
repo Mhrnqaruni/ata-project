@@ -242,7 +242,7 @@ async def start_session(
 
 
 @router.post("/{session_id}/end", response_model=quiz_model.QuizSessionDetail, summary="End Session")
-def end_session(
+async def end_session(
     session_id: str,
     end_data: quiz_model.QuizSessionEnd,
     db: DatabaseService = Depends(get_db_service),
@@ -271,6 +271,17 @@ def end_session(
             user_id=current_user.id,
             db=db,
             reason=reason
+        )
+
+        # FIX: Broadcast session_ended to all participants via WebSocket
+        await connection_manager.broadcast_to_room(
+            session_id,
+            {
+                "type": "session_ended",
+                "session_id": str(session.id),
+                "reason": reason,
+                "final_status": session.status
+            }
         )
 
         # Get related data
@@ -664,7 +675,7 @@ def get_current_question(
 
 
 @router.post("/{session_id}/submit-answer", response_model=quiz_model.AnswerResult, summary="Submit Answer")
-def submit_answer(
+async def submit_answer(
     session_id: str,
     answer_data: quiz_model.AnswerSubmission,
     guest_token: Optional[str] = Header(None, alias="X-Guest-Token"),
@@ -721,6 +732,47 @@ def submit_answer(
             time_taken_ms=answer_data.time_taken_ms,
             db=db
         )
+
+        # FIX: Broadcast participant_answered to teacher (host) via WebSocket
+        await connection_manager.broadcast_to_hosts(
+            session_id,
+            {
+                "type": "participant_answered",
+                "participant_id": str(participant.id),
+                "question_id": answer_data.question_id,
+                "is_correct": result["is_correct"],
+                "timestamp": result.get("timestamp") if isinstance(result, dict) else None
+            }
+        )
+
+        # FIX: Get updated session stats and broadcast to teacher
+        session = db.get_quiz_session_by_id(session_id)
+        if session:
+            # Get total participants and answers for current question
+            participants_list = db.get_participants_by_session(session_id, active_only=True)
+            total_participants = len(participants_list)
+
+            # Count how many have answered the current question
+            answers_count = 0
+            if session.current_question_index is not None:
+                questions = db.get_questions_by_quiz_id(session.quiz_id, session.user_id)
+                if session.current_question_index < len(questions):
+                    current_question_id = questions[session.current_question_index].id
+                    # Count responses for current question
+                    for p in participants_list:
+                        existing_response = db.get_participant_response_for_question(p.id, current_question_id)
+                        if existing_response:
+                            answers_count += 1
+
+            await connection_manager.broadcast_to_hosts(
+                session_id,
+                {
+                    "type": "stats_update",
+                    "total_participants": total_participants,
+                    "answers_received": answers_count,
+                    "completion_percentage": (answers_count / total_participants * 100) if total_participants > 0 else 0
+                }
+            )
 
         return result
 

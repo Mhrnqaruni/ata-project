@@ -268,6 +268,19 @@ const QuizHost = () => {
         setAnswersReceived(prev => prev + 1);
         break;
 
+      case 'stats_update':
+        // FIX: Update real-time stats from backend
+        console.log('Stats update received:', message);
+        setAnswersReceived(message.answers_received || 0);
+        // Optionally update session with new participant count
+        if (message.total_participants !== undefined) {
+          setSession(prev => ({
+            ...prev,
+            total_participants: message.total_participants
+          }));
+        }
+        break;
+
       case 'leaderboard_update':
         // Update leaderboard
         setLeaderboard(message.leaderboard || []);
@@ -526,7 +539,7 @@ const QuizHost = () => {
                   : '-'}
               </Typography>
               <Typography color="text.secondary">
-                of {quiz?.question_count || 0}
+                of {session?.questions?.length || quiz?.question_count || 0}
               </Typography>
 
               {session?.status === 'active' && (
