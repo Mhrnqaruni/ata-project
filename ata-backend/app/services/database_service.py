@@ -10,7 +10,7 @@ Every method that interacts with user-owned data now requires a `user_id`,
 ensuring strict data isolation and security.
 """
 
-from typing import List, Dict, Optional, Generator
+from typing import List, Dict, Optional, Generator, Tuple
 from sqlalchemy.orm import Session
 from fastapi import Depends
 
