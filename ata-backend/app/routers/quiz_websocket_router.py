@@ -184,12 +184,13 @@ async def quiz_session_websocket(
 
     try:
         # Connect to WebSocket manager
+        # FIX: Convert user_id to string (hosts pass UUID, participants pass guest_token string)
         await connection_manager.connect(
             websocket=websocket,
             session_id=session_id,
-            user_id=user_id,
+            user_id=str(user_id),  # Convert UUID to string for logging
             role=role,
-            participant_id=participant.id if participant else None,
+            participant_id=str(participant.id) if participant else None,
             display_name=display_name
         )
 

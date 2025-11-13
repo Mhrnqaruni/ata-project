@@ -497,11 +497,16 @@ def join_session_as_student(room_code: str, student_id: str, db: DatabaseService
     # Check if student already joined
     existing = db.get_participant_by_student_in_session(session.id, student_id)
     if existing:
-        if existing.is_active:
-            raise ValueError("You have already joined this session")
-        else:
-            # Reactivate
+        # Student already joined - return existing participant (allows rejoin)
+        logger.info(f"[StudentJoin] Student {student_id} rejoining session {session.id}, is_active={existing.is_active}")
+
+        if not existing.is_active:
+            # Reactivate if inactive
+            logger.info(f"[StudentJoin] Reactivating participant: student_id={student_id}")
             return db.update_participant(existing.id, {"is_active": True})
+
+        # Return existing participant (allows recovery)
+        return existing
 
     # Check participant limit
     participants = db.get_participants_by_session(session.id, active_only=True)
@@ -577,15 +582,17 @@ def join_session_as_identified_guest(
     # Check if student already joined this session
     existing = db.get_participant_by_student_in_session(session.id, student_id)
     if existing:
-        if existing.is_active:
-            logger.warning(f"[IdentifiedGuestJoin] Student {student_id} already joined session {session.id}")
-            raise ValueError("You have already joined this session")
-        else:
-            # Reactivate existing participant
-            logger.info(f"[IdentifiedGuestJoin] Reactivating participant: student_id={student_id}, session={session.id}")
-            updated = db.update_participant(existing.id, {"is_active": True})
-            # Return existing guest_token
-            return updated, existing.guest_token
+        # Student already joined - return existing participant and token
+        # This allows students to rejoin if they lost their token (cleared browser, different device)
+        logger.info(f"[IdentifiedGuestJoin] Student {student_id} rejoining session {session.id}, is_active={existing.is_active}")
+
+        if not existing.is_active:
+            # Reactivate if inactive
+            logger.info(f"[IdentifiedGuestJoin] Reactivating participant: student_id={student_id}")
+            existing = db.update_participant(existing.id, {"is_active": True})
+
+        # Return existing participant and guest_token (allows recovery if token was lost)
+        return existing, existing.guest_token
 
     # Check participant limit
     participants = db.get_participants_by_session(session.id, active_only=True)
