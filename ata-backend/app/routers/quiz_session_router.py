@@ -34,6 +34,11 @@ from ..services import quiz_service
 from ..services.database_service import DatabaseService, get_db_service
 from ..core.deps import get_current_active_user
 from ..db.models.user_model import User as UserModel
+from ..core.quiz_websocket import (
+    connection_manager,
+    build_session_started_message,
+    build_question_started_message
+)
 
 router = APIRouter()
 
@@ -167,7 +172,7 @@ def get_session(
 
 
 @router.post("/{session_id}/start", response_model=quiz_model.QuizSessionDetail, summary="Start Session")
-def start_session(
+async def start_session(
     session_id: str,
     db: DatabaseService = Depends(get_db_service),
     current_user: UserModel = Depends(get_current_active_user)
@@ -196,6 +201,31 @@ def start_session(
         quiz = db.get_quiz_by_id(session.quiz_id, current_user.id)
         questions = db.get_questions_by_quiz_id(session.quiz_id, current_user.id)
         participants = db.get_participants_by_session(session_id)
+
+        # FIX: Broadcast session_started to all participants via WebSocket
+        await connection_manager.broadcast_to_room(
+            session_id,
+            build_session_started_message(
+                session_id=str(session.id),
+                quiz_title=quiz.title if quiz else "Quiz"
+            )
+        )
+
+        # FIX: Broadcast first question to all participants
+        if questions and len(questions) > 0:
+            first_question = questions[0]
+            await connection_manager.broadcast_to_room(
+                session_id,
+                build_question_started_message(
+                    question_id=str(first_question.id),
+                    question_text=first_question.question_text,
+                    question_type=first_question.question_type,
+                    options=first_question.options if first_question.options else [],
+                    points=first_question.points,
+                    order_index=0,
+                    time_limit_seconds=first_question.time_limit_seconds
+                )
+            )
 
         return {
             **session.__dict__,
@@ -484,12 +514,14 @@ def join_session(
             )
 
             session = db.get_quiz_session_by_id(participant.session_id)
+            quiz = db.get_quiz_by_id(session.quiz_id, session.user_id) if session else None
 
             # FIX: Return nested objects for frontend compatibility
             return {
                 "session": {
                     "id": str(participant.session_id),
                     "room_code": join_data.room_code,
+                    "quiz_title": quiz.title if quiz else "Quiz",
                     "status": session.status if session else "waiting",
                     "current_question_index": session.current_question_index if session else None
                 },
@@ -512,12 +544,14 @@ def join_session(
             )
 
             session = db.get_quiz_session_by_id(participant.session_id)
+            quiz = db.get_quiz_by_id(session.quiz_id, session.user_id) if session else None
 
             # FIX: Return nested objects for frontend compatibility
             return {
                 "session": {
                     "id": str(participant.session_id),
                     "room_code": join_data.room_code,
+                    "quiz_title": quiz.title if quiz else "Quiz",
                     "status": session.status if session else "waiting",
                     "current_question_index": session.current_question_index if session else None
                 },
@@ -540,6 +574,7 @@ def join_session(
             )
 
             session = db.get_quiz_session_by_id(participant.session_id)
+            quiz = db.get_quiz_by_id(session.quiz_id, session.user_id) if session else None
             student = db.get_student_by_student_id(join_data.student_id)
 
             # FIX: Return nested objects for frontend compatibility
@@ -547,6 +582,7 @@ def join_session(
                 "session": {
                     "id": str(participant.session_id),
                     "room_code": join_data.room_code,
+                    "quiz_title": quiz.title if quiz else "Quiz",
                     "status": session.status if session else "waiting",
                     "current_question_index": session.current_question_index if session else None
                 },
