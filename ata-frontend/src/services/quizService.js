@@ -263,16 +263,23 @@ const quizService = {
 
   /**
    * Join a session as a guest (no auth required)
+   *
+   * @param {Object} joinData - Join request data
+   * @param {string} joinData.room_code - Session room code
+   * @param {string} joinData.guest_name - Student's name
+   * @param {string} [joinData.student_id] - Optional student ID (for identified guests)
+   *
+   * Supports three join modes:
+   * 1. Identified guest (MOST COMMON): Provide both guest_name and student_id
+   * 2. Pure guest: Provide only guest_name
+   * 3. Registered student: Provide only student_id (requires account)
    */
-  joinSession: async (roomCode, guestName) => {
+  joinSession: async (joinData) => {
     try {
-      const response = await apiClient.post('/api/quiz-sessions/join', {
-        room_code: roomCode,
-        guest_name: guestName
-      });
-      return response.data; // Returns { participant, session, guest_token }
+      const response = await apiClient.post('/api/quiz-sessions/join', joinData);
+      return response.data; // Returns { participant_id, session_id, display_name, guest_token, is_guest, session_status, current_question_index }
     } catch (error) {
-      console.error(`Error joining session with room code ${roomCode}:`, error);
+      console.error(`Error joining session:`, error);
       const errorMessage = error.response?.data?.detail || "Failed to join quiz session.";
       throw new Error(errorMessage);
     }

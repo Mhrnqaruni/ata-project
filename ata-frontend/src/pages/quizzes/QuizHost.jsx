@@ -44,6 +44,9 @@ import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 // --- Service Import ---
 import quizService from '../../services/quizService';
 
+// --- QR Code Import ---
+import { QRCodeSVG } from 'qrcode.react';
+
 /**
  * Leaderboard Component
  */
@@ -326,6 +329,22 @@ const QuizHost = () => {
     }
   };
 
+  // Generate join URL for students
+  const getJoinUrl = () => {
+    if (!session?.room_code) return '';
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/quiz/join/${session.room_code}`;
+  };
+
+  // Copy join URL to clipboard
+  const copyJoinUrl = () => {
+    const url = getJoinUrl();
+    if (url) {
+      navigator.clipboard.writeText(url);
+      console.log('[QuizHost] Join URL copied to clipboard:', url);
+    }
+  };
+
   const getCompletionRate = () => {
     if (!session || session.total_participants === 0) return 0;
     return Math.round((answersReceived / session.total_participants) * 100);
@@ -353,54 +372,129 @@ const QuizHost = () => {
 
   return (
     <Box>
-      {/* Header with Room Code */}
+      {/* Header with Room Code and QR Code */}
       <Paper
         sx={{
           p: 4,
           mb: 3,
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          color: 'white',
-          textAlign: 'center'
+          color: 'white'
         }}
       >
-        <Typography variant="h3" sx={{ mb: 2, fontWeight: 700 }}>
+        <Typography variant="h3" sx={{ mb: 3, fontWeight: 700, textAlign: 'center' }}>
           {quiz?.title}
         </Typography>
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2 }}>
-          <Typography variant="h6">Room Code:</Typography>
-          <Box
-            sx={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 1,
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
-              borderRadius: 2,
-              px: 3,
-              py: 1.5,
-              border: '3px dashed rgba(255, 255, 255, 0.5)'
-            }}
-          >
-            <Typography
-              variant="h2"
-              sx={{
-                fontWeight: 900,
-                letterSpacing: 8,
-                fontFamily: 'monospace'
-              }}
-            >
-              {session?.room_code}
-            </Typography>
-            <Tooltip title="Copy room code">
-              <IconButton onClick={copyRoomCode} sx={{ color: 'white' }}>
-                <ContentCopyIcon />
-              </IconButton>
-            </Tooltip>
-          </Box>
+
+        <Grid container spacing={4} alignItems="center">
+          {/* Left: Room Code and Join Link */}
+          <Grid item xs={12} md={8}>
+            <Box sx={{ textAlign: 'center' }}>
+              {/* Room Code */}
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Room Code:
+              </Typography>
+              <Box
+                sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  borderRadius: 2,
+                  px: 3,
+                  py: 1.5,
+                  border: '3px dashed rgba(255, 255, 255, 0.5)',
+                  mb: 3
+                }}
+              >
+                <Typography
+                  variant="h2"
+                  sx={{
+                    fontWeight: 900,
+                    letterSpacing: 8,
+                    fontFamily: 'monospace'
+                  }}
+                >
+                  {session?.room_code}
+                </Typography>
+                <Tooltip title="Copy room code">
+                  <IconButton onClick={copyRoomCode} sx={{ color: 'white' }}>
+                    <ContentCopyIcon />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+
+              {/* Join Link */}
+              <Box>
+                <Typography variant="subtitle2" sx={{ mb: 1, opacity: 0.9 }}>
+                  Student Join Link:
+                </Typography>
+                <Box
+                  sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                    borderRadius: 1,
+                    px: 2,
+                    py: 1,
+                    maxWidth: '100%'
+                  }}
+                >
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontFamily: 'monospace',
+                      fontSize: '0.9rem',
+                      wordBreak: 'break-all'
+                    }}
+                  >
+                    {getJoinUrl()}
+                  </Typography>
+                  <Tooltip title="Copy join link">
+                    <IconButton onClick={copyJoinUrl} size="small" sx={{ color: 'white' }}>
+                      <ContentCopyIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </Box>
+            </Box>
+          </Grid>
+
+          {/* Right: QR Code */}
+          <Grid item xs={12} md={4}>
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Scan to Join:
+              </Typography>
+              <Box
+                sx={{
+                  display: 'inline-block',
+                  p: 2,
+                  backgroundColor: 'white',
+                  borderRadius: 2,
+                  boxShadow: 3
+                }}
+              >
+                <QRCodeSVG
+                  value={getJoinUrl()}
+                  size={180}
+                  level="H"
+                  includeMargin={true}
+                />
+              </Box>
+              <Typography variant="caption" sx={{ display: 'block', mt: 1, opacity: 0.9 }}>
+                Students can scan this QR code to join
+              </Typography>
+            </Box>
+          </Grid>
+        </Grid>
+
+        <Box sx={{ textAlign: 'center', mt: 2 }}>
+          <Chip
+            label={wsConnected ? '🟢 Live Connected' : '🔴 Disconnected'}
+            sx={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', color: 'white' }}
+          />
         </Box>
-        <Chip
-          label={wsConnected ? '🟢 Live Connected' : '🔴 Disconnected'}
-          sx={{ mt: 2, backgroundColor: 'rgba(255, 255, 255, 0.2)', color: 'white' }}
-        />
       </Paper>
 
       {/* Main Content Grid */}

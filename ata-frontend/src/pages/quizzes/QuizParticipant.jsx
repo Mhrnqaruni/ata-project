@@ -44,19 +44,41 @@ const JoinScreen = ({ onJoin }) => {
   const { roomCode: urlRoomCode } = useParams();
   const [roomCode, setRoomCode] = useState(urlRoomCode || '');
   const [guestName, setGuestName] = useState('');
+  const [studentId, setStudentId] = useState('');
   const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState(null);
 
   const handleJoin = async () => {
-    if (!roomCode.trim() || !guestName.trim()) {
-      setError("Please enter both room code and your name.");
+    // Validation
+    if (!roomCode.trim()) {
+      setError("Please enter a room code.");
+      return;
+    }
+
+    if (!guestName.trim()) {
+      setError("Please enter your name.");
+      return;
+    }
+
+    if (!studentId.trim()) {
+      setError("Please enter your student ID.");
       return;
     }
 
     try {
       setIsJoining(true);
       setError(null);
-      const response = await quizService.joinSession(roomCode.toUpperCase(), guestName);
+
+      console.log('[JoinScreen] Joining with:', { roomCode, guestName, studentId });
+
+      // Call new joinSession API with object (supports identified guests)
+      const response = await quizService.joinSession({
+        room_code: roomCode.toUpperCase().trim(),
+        guest_name: guestName.trim(),
+        student_id: studentId.trim()
+      });
+
+      console.log('[JoinScreen] Join successful:', response);
       onJoin(response);
     } catch (err) {
       console.error("Failed to join session:", err);
@@ -74,7 +96,7 @@ const JoinScreen = ({ onJoin }) => {
             Join Quiz
           </Typography>
           <Typography variant="h6" color="text.secondary" sx={{ mb: 4 }}>
-            Enter the room code provided by your teacher
+            Enter your information to join the quiz
           </Typography>
 
           <Paper sx={{ p: 4 }}>
@@ -103,7 +125,16 @@ const JoinScreen = ({ onJoin }) => {
               label="Your Name"
               value={guestName}
               onChange={(e) => setGuestName(e.target.value)}
-              placeholder="Enter your name"
+              placeholder="e.g., John Doe"
+              sx={{ mb: 3 }}
+            />
+
+            <TextField
+              fullWidth
+              label="Student ID"
+              value={studentId}
+              onChange={(e) => setStudentId(e.target.value)}
+              placeholder="e.g., 12345"
               sx={{ mb: 3 }}
               onKeyPress={(e) => {
                 if (e.key === 'Enter') {
