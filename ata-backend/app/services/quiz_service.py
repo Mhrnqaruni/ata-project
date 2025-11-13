@@ -391,6 +391,15 @@ def end_session(session_id: str, user_id: str, db: DatabaseService, reason: str 
 
     result = db.update_quiz_session_status(session_id, user_id, status)
 
+    # FIX: Update quiz status to "completed" when session successfully completes
+    if status == SessionStatus.COMPLETED:
+        try:
+            db.update_quiz_status(session.quiz_id, user_id, "completed")
+            logger.info(f"[SessionEnd] Updated quiz {session.quiz_id} status to completed")
+        except Exception as e:
+            # Don't fail the session end if quiz update fails
+            logger.warning(f"[SessionEnd] Failed to update quiz status: {e}")
+
     logger.info(f"[SessionEnd] Success: session_id={session_id}, final_status={status}")
 
     return result

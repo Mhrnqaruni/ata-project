@@ -273,6 +273,45 @@ async def end_session(
             reason=reason
         )
 
+        # Get related data first (needed for leaderboard)
+        quiz = db.get_quiz_by_id(session.quiz_id, current_user.id)
+        questions = db.get_questions_by_quiz_id(session.quiz_id, current_user.id)
+        participants = db.get_participants_by_session(session_id)
+
+        # FIX: Broadcast FINAL leaderboard before session_ended
+        # This ensures students see correct scores when quiz ends
+        leaderboard_entries = []
+        leaderboard_participants = db.get_leaderboard(session_id, limit=100)  # Get all
+        for rank, p in enumerate(leaderboard_participants, start=1):
+            # Determine display name
+            display_name = "Unknown"
+            if p.guest_name:
+                display_name = p.guest_name
+            elif p.student_id:
+                try:
+                    student = db.get_student_by_student_id(p.student_id)
+                    display_name = student.name if student else f"Student {p.student_id}"
+                except:
+                    display_name = f"Student {p.student_id}"
+
+            leaderboard_entries.append({
+                "rank": rank,
+                "participant_id": str(p.id),
+                "display_name": display_name,
+                "score": p.score,
+                "correct_answers": p.correct_answers,
+                "total_time_ms": p.total_time_ms,
+                "is_active": p.is_active
+            })
+
+        await connection_manager.broadcast_to_room(
+            session_id,
+            {
+                "type": "leaderboard_update",
+                "leaderboard": leaderboard_entries
+            }
+        )
+
         # FIX: Broadcast session_ended to all participants via WebSocket
         await connection_manager.broadcast_to_room(
             session_id,
@@ -283,11 +322,6 @@ async def end_session(
                 "final_status": session.status
             }
         )
-
-        # Get related data
-        quiz = db.get_quiz_by_id(session.quiz_id, current_user.id)
-        questions = db.get_questions_by_quiz_id(session.quiz_id, current_user.id)
-        participants = db.get_participants_by_session(session_id)
 
         return {
             **session.__dict__,
