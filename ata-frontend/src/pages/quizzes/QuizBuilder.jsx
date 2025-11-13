@@ -68,6 +68,21 @@ const QuestionEditor = ({ question, index, onChange, onDelete, onDuplicate }) =>
 
   const handleChange = (field, value) => {
     const updated = { ...localQuestion, [field]: value };
+
+    // FIX: When changing question type, reset correct_answer appropriately
+    if (field === 'question_type') {
+      if (value === 'poll') {
+        updated.correct_answer = [];  // Polls have no correct answer
+      } else if (value === 'true_false') {
+        updated.correct_answer = [true];  // Default to true
+      } else if (value === 'multiple_choice') {
+        updated.correct_answer = [];  // Will be set when user selects
+      } else if (value === 'short_answer') {
+        updated.correct_answer = [];  // Will be set when user enters keywords
+      }
+      console.log('[QuestionEditor] Question type changed to:', value, 'Reset correct_answer to:', updated.correct_answer);
+    }
+
     setLocalQuestion(updated);
     onChange(index, updated);
   };
@@ -383,18 +398,18 @@ const QuizBuilder = () => {
   };
 
   const addQuestion = () => {
-    setQuestions([
-      ...questions,
-      {
-        question_type: 'multiple_choice',
-        question_text: '',
-        options: ['', '', '', ''],
-        correct_answer: [],
-        points: 10,
-        time_limit_seconds: 30,
-        order_index: questions.length
-      }
-    ]);
+    const newQuestion = {
+      question_type: 'multiple_choice',
+      question_text: '',
+      options: ['', '', '', ''],
+      correct_answer: [],  // Start with empty array
+      points: 10,
+      time_limit_seconds: 30,
+      order_index: questions.length
+    };
+
+    console.log('[QuizBuilder] Adding new question:', newQuestion);
+    setQuestions([...questions, newQuestion]);
   };
 
   const deleteQuestion = (index) => {
@@ -457,7 +472,7 @@ const QuizBuilder = () => {
     const validationError = validateQuiz();
     if (validationError) {
       setError(validationError);
-      return;
+      return null; // Return null to indicate failure
     }
 
     try {
@@ -468,18 +483,31 @@ const QuizBuilder = () => {
         title: quizTitle,
         description: quizDescription,
         settings: quizSettings,
-        questions: questions.map((q, index) => ({ ...q, order_index: index }))
+        questions: questions.map((q, index) => ({
+          ...q,
+          order_index: index,
+          // FIX: Ensure poll questions have empty correct_answer array
+          correct_answer: q.question_type === 'poll' ? [] : q.correct_answer
+        }))
       };
+
+      console.log('[QuizBuilder] Saving quiz:', quizData);
 
       if (isEditMode) {
         await quizService.updateQuiz(quizId, quizData);
+        console.log('[QuizBuilder] Quiz updated successfully');
+        return quizId; // Return the current quiz ID
       } else {
         const created = await quizService.createQuiz(quizData);
+        console.log('[QuizBuilder] Quiz created successfully:', created.id);
         navigate(`/quizzes/${created.id}/edit`);
+        return created.id; // Return the new quiz ID
       }
     } catch (err) {
-      console.error("Failed to save quiz:", err);
+      console.error("[QuizBuilder] Failed to save quiz:", err);
+      console.error("[QuizBuilder] Error details:", err.response?.data);
       setError(err.message || "Failed to save quiz.");
+      return null; // Return null to indicate failure
     } finally {
       setIsSaving(false);
     }
@@ -497,17 +525,28 @@ const QuizBuilder = () => {
       setIsSaving(true);
       setError(null);
 
-      // Save first if needed
+      let quizIdToPublish = quizId;
+
+      // Save first if needed (creating new quiz)
       if (!isEditMode) {
-        await handleSave();
+        console.log('[QuizBuilder] Creating quiz before publishing...');
+        const createdQuizId = await handleSave();
+        if (!createdQuizId) {
+          throw new Error('Failed to create quiz before publishing');
+        }
+        quizIdToPublish = createdQuizId;
+        console.log('[QuizBuilder] Quiz created, now publishing:', quizIdToPublish);
       }
 
       // Then publish
-      await quizService.publishQuiz(quizId);
+      console.log('[QuizBuilder] Publishing quiz:', quizIdToPublish);
+      await quizService.publishQuiz(quizIdToPublish);
+      console.log('[QuizBuilder] Quiz published successfully');
       setPublishDialog(false);
       navigate('/quizzes');
     } catch (err) {
-      console.error("Failed to publish quiz:", err);
+      console.error("[QuizBuilder] Failed to publish quiz:", err);
+      console.error("[QuizBuilder] Error details:", err.response?.data);
       setError(err.message || "Failed to publish quiz.");
       setPublishDialog(false);
     } finally {
