@@ -343,7 +343,23 @@ def get_participants(
     # Build response with display names
     result = []
     for p in participants:
-        display_name = p.guest_name if p.guest_name else (p.student.name if p.student else "Unknown")
+        # Determine display name based on identity type:
+        # 1. Has guest_name → use it (pure guest or identified guest)
+        # 2. Has student_id only → try to lookup student by ID (registered student)
+        # 3. Fallback → "Unknown"
+        display_name = "Unknown"
+
+        if p.guest_name:
+            # Guest or identified guest
+            display_name = p.guest_name
+        elif p.student_id:
+            # Registered student - try to lookup
+            try:
+                student = db.get_student_by_student_id(p.student_id)
+                display_name = student.name if student else f"Student {p.student_id}"
+            except:
+                display_name = f"Student {p.student_id}"
+
         result.append({
             "id": p.id,
             "display_name": display_name,
@@ -395,7 +411,20 @@ def get_leaderboard(
     # FIX: Convert UUID to string for JSON serialization
     entries = []
     for rank, p in enumerate(participants, start=1):
-        display_name = p.guest_name if p.guest_name else (p.student.name if p.student else "Unknown")
+        # Determine display name (same logic as get_participants)
+        display_name = "Unknown"
+
+        if p.guest_name:
+            # Guest or identified guest
+            display_name = p.guest_name
+        elif p.student_id:
+            # Registered student - try to lookup
+            try:
+                student = db.get_student_by_student_id(p.student_id)
+                display_name = student.name if student else f"Student {p.student_id}"
+            except:
+                display_name = f"Student {p.student_id}"
+
         entries.append({
             "rank": rank,
             "participant_id": str(p.id),

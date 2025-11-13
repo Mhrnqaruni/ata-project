@@ -360,12 +360,18 @@ class QuizSessionRepositorySQL:
         names = []
 
         for p in participants:
-            if p.student_id:
-                # Get student name from relationship
-                if p.student:
-                    names.append(p.student.name)
-            else:
+            if p.guest_name:
+                # Guest or identified guest - use guest_name
                 names.append(p.guest_name)
+            elif p.student_id:
+                # Registered student - try to lookup name
+                try:
+                    student = self.get_student_by_student_id(p.student_id)
+                    if student and student.name:
+                        names.append(student.name)
+                except:
+                    # If lookup fails, skip this participant's name
+                    pass
 
         return names
 

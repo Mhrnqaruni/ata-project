@@ -328,7 +328,13 @@ class QuizParticipant(Base):
 
     # ===== RELATIONSHIPS =====
     session = relationship("QuizSession", back_populates="participants")
-    student = relationship("Student")  # May be NULL for guests
+
+    # NOTE: student_id is NO LONGER a foreign key (after migration dfcbca98dcdf)
+    # It can be:
+    # 1. A reference to students.id (for registered students)
+    # 2. An arbitrary school student ID (for identified guests)
+    # Therefore, we CANNOT define a relationship here.
+    # Use db.get_student_by_student_id(participant.student_id) if you need the Student object.
 
     # One-to-many relationship with responses
     responses = relationship(
@@ -339,10 +345,16 @@ class QuizParticipant(Base):
 
     # ===== CONSTRAINTS & INDEXES =====
     __table_args__ = (
-        # CHECK constraint: EITHER student_id OR (guest_name AND guest_token), not both
+        # CHECK constraint: Three identity types allowed (updated in migration dfcbca98dcdf)
+        # 1. Registered student: student_id, no guest fields
+        # 2. Pure guest: guest_name + guest_token, no student_id
+        # 3. Identified guest: ALL three fields (student_id + guest_name + guest_token)
+        # NOTE: This constraint is defined in migration, keeping here for documentation
+        # The actual constraint is applied by Alembic migration dfcbca98dcdf
         CheckConstraint(
             "(student_id IS NOT NULL AND guest_name IS NULL AND guest_token IS NULL) OR "
-            "(student_id IS NULL AND guest_name IS NOT NULL AND guest_token IS NOT NULL)",
+            "(student_id IS NULL AND guest_name IS NOT NULL AND guest_token IS NOT NULL) OR "
+            "(student_id IS NOT NULL AND guest_name IS NOT NULL AND guest_token IS NOT NULL)",
             name="chk_participant_identity"
         ),
         # Composite index for leaderboard queries (session + score descending)
