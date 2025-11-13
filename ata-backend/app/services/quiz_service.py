@@ -524,6 +524,106 @@ def join_session_as_student(room_code: str, student_id: str, db: DatabaseService
     return db.add_quiz_participant(participant_data)
 
 
+def join_session_as_identified_guest(
+    room_code: str,
+    student_name: str,
+    student_id: str,
+    db: DatabaseService
+) -> Tuple[QuizParticipant, str]:
+    """
+    Join a session as an identified guest (student with ID but no account).
+
+    This is the most common flow for K-12 quiz participation:
+    - Students don't need accounts
+    - They provide their name + student ID from school
+    - Teacher can track individual student performance
+    - Students are authenticated via guest_token
+
+    Args:
+        room_code: Session room code
+        student_name: Student's display name
+        student_id: Student ID from school (arbitrary string)
+        db: Database service
+
+    Returns:
+        Tuple of (QuizParticipant, guest_token)
+
+    Raises:
+        ValueError: If validation fails
+    """
+    logger.info(f"[IdentifiedGuestJoin] Student '{student_name}' (ID: {student_id}) attempting to join room: {room_code}")
+
+    # Validate room code format
+    if not is_valid_room_code_format(room_code):
+        logger.warning(f"[IdentifiedGuestJoin] Invalid room code format: {room_code}")
+        raise ValueError("Invalid room code format")
+
+    # Validate student_id format (basic validation)
+    if not student_id or len(student_id.strip()) == 0:
+        raise ValueError("Student ID cannot be empty")
+
+    student_id = student_id.strip()
+
+    # Find session
+    session = db.get_quiz_session_by_room_code(room_code)
+    if not session:
+        logger.warning(f"[IdentifiedGuestJoin] Session not found for room code: {room_code}")
+        raise ValueError("Session not found")
+
+    if session.status not in [SessionStatus.WAITING, SessionStatus.ACTIVE]:
+        logger.warning(f"[IdentifiedGuestJoin] Invalid session status: room={room_code}, status={session.status}")
+        raise ValueError(f"Cannot join session in '{session.status}' status")
+
+    # Check if student already joined this session
+    existing = db.get_participant_by_student_in_session(session.id, student_id)
+    if existing:
+        if existing.is_active:
+            logger.warning(f"[IdentifiedGuestJoin] Student {student_id} already joined session {session.id}")
+            raise ValueError("You have already joined this session")
+        else:
+            # Reactivate existing participant
+            logger.info(f"[IdentifiedGuestJoin] Reactivating participant: student_id={student_id}, session={session.id}")
+            updated = db.update_participant(existing.id, {"is_active": True})
+            # Return existing guest_token
+            return updated, existing.guest_token
+
+    # Check participant limit
+    participants = db.get_participants_by_session(session.id, active_only=True)
+    if len(participants) >= quiz_settings.MAX_PARTICIPANTS_PER_SESSION:
+        logger.warning(f"[IdentifiedGuestJoin] Session full: room={room_code}, participants={len(participants)}")
+        raise ValueError(
+            f"Session is full (max {quiz_settings.MAX_PARTICIPANTS_PER_SESSION} participants)"
+        )
+
+    # Sanitize name and handle duplicates
+    sanitized_name = sanitize_participant_name(student_name)
+    existing_names = db.get_participant_names_in_session(session.id)
+    unique_name = handle_duplicate_name(sanitized_name, existing_names)
+
+    if unique_name != sanitized_name:
+        logger.info(f"[IdentifiedGuestJoin] Name modified to ensure uniqueness: '{sanitized_name}' -> '{unique_name}'")
+
+    # Generate guest token for authentication
+    guest_token = generate_guest_token()
+
+    # Create participant with BOTH student_id AND guest info
+    participant_data = {
+        "session_id": session.id,
+        "student_id": student_id,  # For tracking
+        "guest_name": unique_name,  # For display
+        "guest_token": guest_token,  # For authentication
+        "score": 0,
+        "correct_answers": 0,
+        "total_time_ms": 0,
+        "is_active": True
+    }
+    participant = db.add_quiz_participant(participant_data)
+
+    logger.info(f"[IdentifiedGuestJoin] Success: participant_id={participant.id}, student_id={student_id}, name={unique_name}, session={session.id}")
+
+    return participant, guest_token
+
+
 # ==================== ANSWER GRADING ====================
 
 def grade_answer(question: QuizQuestion, participant_answer: List) -> Tuple[bool, int]:

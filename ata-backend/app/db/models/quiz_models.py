@@ -275,11 +275,15 @@ class QuizParticipant(Base):
     """
     Represents a participant in a quiz session.
 
-    Supports DUAL IDENTITY: either a registered student OR a guest user.
-    - Registered: student_id is set, guest_name/guest_token are NULL
-    - Guest: guest_name and guest_token are set, student_id is NULL
+    Supports THREE IDENTITY TYPES:
+    1. Registered student (has account): student_id set, guest_name/guest_token NULL
+    2. Pure guest (anonymous): guest_name/guest_token set, student_id NULL
+    3. Identified guest (NEW - student without account): ALL three fields set
+       - Students provide name + student_id but don't need an account
+       - Common for K-12 quiz participation
+       - student_id is arbitrary string (not FK to students table)
 
-    Check constraint ensures exactly one identity is set.
+    Check constraint ensures one of these three identity patterns is used.
     """
     __tablename__ = "quiz_participants"
 
@@ -289,9 +293,10 @@ class QuizParticipant(Base):
     # ===== FOREIGN KEYS =====
     session_id = Column(String, ForeignKey("quiz_sessions.id", ondelete="CASCADE"), nullable=False, index=True)
 
-    # ===== DUAL IDENTITY PATTERN =====
-    # For registered students
-    student_id = Column(String, ForeignKey("students.id", ondelete="SET NULL"), nullable=True, index=True)
+    # ===== TRIPLE IDENTITY PATTERN =====
+    # Student ID (can be from school system, not necessarily in students table)
+    # Used for: (1) Registered students (with account) OR (2) Identified guests (without account)
+    student_id = Column(String, nullable=True, index=True)
 
     # For guest users (not registered)
     guest_name = Column(String(50), nullable=True)

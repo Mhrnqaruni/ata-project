@@ -422,12 +422,21 @@ def join_session(
     db: DatabaseService = Depends(get_db_service)
 ):
     """
-    Join a quiz session as a guest or registered student.
+    Join a quiz session as a guest, registered student, or identified guest.
 
     Request Body:
     - room_code: Session room code (required)
-    - guest_name: Name for guest users (optional, for guests)
-    - student_id: Student ID (optional, for registered students)
+    - guest_name: Name for guest users (optional)
+    - student_id: Student ID (optional)
+
+    Join Modes:
+    1. Identified Guest (MOST COMMON): Provide both guest_name AND student_id
+       - Students without accounts (K-12 use case)
+       - Teacher can track by student ID
+    2. Pure Guest: Provide only guest_name
+       - Anonymous participation
+    3. Registered Student: Provide only student_id
+       - Student with existing account
 
     Returns:
     - Participant details with guest_token (for guests) or session info (for students)
@@ -436,8 +445,30 @@ def join_session(
     - 400: Invalid room code, session full, duplicate join
     """
     try:
-        if join_data.guest_name:
-            # Join as guest
+        # MODE 1: Identified Guest (both name and student ID) - MOST COMMON
+        if join_data.guest_name and join_data.student_id:
+            participant, guest_token = quiz_service.join_session_as_identified_guest(
+                room_code=join_data.room_code,
+                student_name=join_data.guest_name,
+                student_id=join_data.student_id,
+                db=db
+            )
+
+            session = db.get_quiz_session_by_id(participant.session_id)
+
+            return {
+                "participant_id": str(participant.id),
+                "session_id": str(participant.session_id),
+                "room_code": join_data.room_code,
+                "display_name": participant.guest_name,
+                "guest_token": guest_token,
+                "is_guest": True,  # Authenticated via guest_token
+                "session_status": session.status if session else "unknown",
+                "current_question_index": session.current_question_index if session else None
+            }
+
+        # MODE 2: Pure Guest (only name, no student ID)
+        elif join_data.guest_name:
             participant, guest_token = quiz_service.join_session_as_guest(
                 room_code=join_data.room_code,
                 guest_name=join_data.guest_name,
@@ -447,8 +478,8 @@ def join_session(
             session = db.get_quiz_session_by_id(participant.session_id)
 
             return {
-                "participant_id": participant.id,
-                "session_id": participant.session_id,
+                "participant_id": str(participant.id),
+                "session_id": str(participant.session_id),
                 "room_code": join_data.room_code,
                 "display_name": participant.guest_name,
                 "guest_token": guest_token,
@@ -457,8 +488,8 @@ def join_session(
                 "current_question_index": session.current_question_index if session else None
             }
 
+        # MODE 3: Registered Student (only student ID, has account)
         elif join_data.student_id:
-            # Join as student
             participant = quiz_service.join_session_as_student(
                 room_code=join_data.room_code,
                 student_id=join_data.student_id,
@@ -469,8 +500,8 @@ def join_session(
             student = db.get_student_by_student_id(join_data.student_id)
 
             return {
-                "participant_id": participant.id,
-                "session_id": participant.session_id,
+                "participant_id": str(participant.id),
+                "session_id": str(participant.session_id),
                 "room_code": join_data.room_code,
                 "display_name": student.name if student else "Student",
                 "guest_token": None,
@@ -482,7 +513,7 @@ def join_session(
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Must provide either guest_name or student_id"
+                detail="Must provide either guest_name or student_id (or both for identified guests)"
             )
 
     except ValueError as e:
