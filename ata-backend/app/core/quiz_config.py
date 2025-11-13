@@ -90,7 +90,7 @@ class QuizSettings(BaseSettings):
 
     # Batch leaderboard updates interval (seconds)
     # Research: 2-3 seconds is optimal for UX (not too spammy, feels real-time)
-    LEADERBOARD_UPDATE_INTERVAL_SECONDS: int = 2.5
+    LEADERBOARD_UPDATE_INTERVAL_SECONDS: float = 2.5
 
     # Number of top participants to show on leaderboard
     LEADERBOARD_TOP_COUNT: int = 5
