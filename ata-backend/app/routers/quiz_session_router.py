@@ -485,15 +485,22 @@ def join_session(
 
             session = db.get_quiz_session_by_id(participant.session_id)
 
+            # FIX: Return nested objects for frontend compatibility
             return {
-                "participant_id": str(participant.id),
-                "session_id": str(participant.session_id),
-                "room_code": join_data.room_code,
-                "display_name": participant.guest_name,
-                "guest_token": guest_token,
-                "is_guest": True,  # Authenticated via guest_token
-                "session_status": session.status if session else "unknown",
-                "current_question_index": session.current_question_index if session else None
+                "session": {
+                    "id": str(participant.session_id),
+                    "room_code": join_data.room_code,
+                    "status": session.status if session else "waiting",
+                    "current_question_index": session.current_question_index if session else None
+                },
+                "participant": {
+                    "id": str(participant.id),
+                    "display_name": participant.guest_name,
+                    "guest_name": participant.guest_name,
+                    "student_id": participant.student_id,
+                    "is_guest": True
+                },
+                "guest_token": guest_token
             }
 
         # MODE 2: Pure Guest (only name, no student ID)
@@ -506,15 +513,22 @@ def join_session(
 
             session = db.get_quiz_session_by_id(participant.session_id)
 
+            # FIX: Return nested objects for frontend compatibility
             return {
-                "participant_id": str(participant.id),
-                "session_id": str(participant.session_id),
-                "room_code": join_data.room_code,
-                "display_name": participant.guest_name,
-                "guest_token": guest_token,
-                "is_guest": True,
-                "session_status": session.status if session else "unknown",
-                "current_question_index": session.current_question_index if session else None
+                "session": {
+                    "id": str(participant.session_id),
+                    "room_code": join_data.room_code,
+                    "status": session.status if session else "waiting",
+                    "current_question_index": session.current_question_index if session else None
+                },
+                "participant": {
+                    "id": str(participant.id),
+                    "display_name": participant.guest_name,
+                    "guest_name": participant.guest_name,
+                    "student_id": None,
+                    "is_guest": True
+                },
+                "guest_token": guest_token
             }
 
         # MODE 3: Registered Student (only student ID, has account)
@@ -528,15 +542,22 @@ def join_session(
             session = db.get_quiz_session_by_id(participant.session_id)
             student = db.get_student_by_student_id(join_data.student_id)
 
+            # FIX: Return nested objects for frontend compatibility
             return {
-                "participant_id": str(participant.id),
-                "session_id": str(participant.session_id),
-                "room_code": join_data.room_code,
-                "display_name": student.name if student else "Student",
-                "guest_token": None,
-                "is_guest": False,
-                "session_status": session.status if session else "unknown",
-                "current_question_index": session.current_question_index if session else None
+                "session": {
+                    "id": str(participant.session_id),
+                    "room_code": join_data.room_code,
+                    "status": session.status if session else "waiting",
+                    "current_question_index": session.current_question_index if session else None
+                },
+                "participant": {
+                    "id": str(participant.id),
+                    "display_name": student.name if student else "Student",
+                    "guest_name": None,
+                    "student_id": participant.student_id,
+                    "is_guest": False
+                },
+                "guest_token": None
             }
 
         else:

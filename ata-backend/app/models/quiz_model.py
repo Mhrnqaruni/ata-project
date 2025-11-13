@@ -314,15 +314,26 @@ class ParticipantJoinRequest(BaseSchema):
 
 
 class ParticipantJoinResponse(BaseSchema):
-    """Schema for successful join response."""
-    participant_id: str
-    session_id: str
-    room_code: str
-    display_name: str = Field(..., description="Name to display (may be modified for uniqueness)")
+    """Schema for successful join response with nested objects."""
+
+    class SessionInfo(BaseSchema):
+        """Nested session information."""
+        id: str
+        room_code: str
+        status: SessionStatus
+        current_question_index: Optional[int] = None
+
+    class ParticipantInfo(BaseSchema):
+        """Nested participant information."""
+        id: str
+        display_name: str
+        guest_name: Optional[str] = None
+        student_id: Optional[str] = None
+        is_guest: bool
+
+    session: SessionInfo
+    participant: ParticipantInfo
     guest_token: Optional[str] = Field(None, description="Token for guest authentication")
-    is_guest: bool
-    session_status: SessionStatus
-    current_question_index: Optional[int] = None
 
 
 class ParticipantSummary(BaseSchema):
