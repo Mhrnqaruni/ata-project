@@ -35,6 +35,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DeleteIcon from '@mui/icons-material/Delete';
 import QuizOutlined from '@mui/icons-material/QuizOutlined';
 import PublishIcon from '@mui/icons-material/Publish';
+import AssessmentIcon from '@mui/icons-material/Assessment';
 
 // --- Service Import for Backend Communication ---
 import quizService from '../services/quizService';
@@ -59,7 +60,7 @@ const EmptyState = ({ onAddQuiz }) => (
 /**
  * Quiz card component displaying a single quiz
  */
-const QuizCard = ({ quiz, onEdit, onDuplicate, onDelete, onStartSession, onPublish }) => {
+const QuizCard = ({ quiz, onEdit, onDuplicate, onDelete, onStartSession, onPublish, onReview }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
 
@@ -75,6 +76,8 @@ const QuizCard = ({ quiz, onEdit, onDuplicate, onDelete, onStartSession, onPubli
     switch (status) {
       case 'published':
         return 'success';
+      case 'completed':
+        return 'info';
       case 'draft':
         return 'warning';
       case 'archived':
@@ -138,7 +141,17 @@ const QuizCard = ({ quiz, onEdit, onDuplicate, onDelete, onStartSession, onPubli
       </CardContent>
 
       <CardActions sx={{ p: 2, pt: 0 }}>
-        {quiz.status === 'published' ? (
+        {quiz.status === 'completed' ? (
+          <Button
+            fullWidth
+            variant="contained"
+            color="primary"
+            startIcon={<AssessmentIcon />}
+            onClick={() => onReview(quiz.id)}
+          >
+            Review Analytics
+          </Button>
+        ) : quiz.status === 'published' ? (
           <Button
             fullWidth
             variant="contained"
@@ -314,6 +327,12 @@ const Quizzes = () => {
     }
   };
 
+  const handleReviewAnalytics = (quizId) => {
+    // Navigate to analytics page for this quiz
+    // We'll need to get the most recent session for this quiz
+    navigate(`/quizzes/${quizId}/analytics`);
+  };
+
   const renderContent = () => {
     if (isLoading) {
       return (
@@ -359,6 +378,7 @@ const Quizzes = () => {
               onDelete={handleOpenDeleteDialog}
               onStartSession={handleStartSession}
               onPublish={handlePublish}
+              onReview={handleReviewAnalytics}
             />
           </Grid>
         ))}

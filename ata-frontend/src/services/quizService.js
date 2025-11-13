@@ -328,11 +328,12 @@ const quizService = {
   // ==================== ANALYTICS OPERATIONS ====================
 
   /**
-   * Get session analytics
+   * Get comprehensive session analytics
+   * Returns session summary, question breakdown, and all statistics
    */
   getSessionAnalytics: async (sessionId) => {
     try {
-      const response = await apiClient.get(`/api/quiz-analytics/sessions/${sessionId}`);
+      const response = await apiClient.get(`/api/quiz-sessions/${sessionId}/analytics`);
       return response.data;
     } catch (error) {
       console.error(`Error fetching analytics for session ${sessionId}:`, error);
@@ -342,46 +343,49 @@ const quizService = {
   },
 
   /**
-   * Get question analytics
+   * Get participant analytics list for a session
+   * Returns all participants sorted by rank
    */
-  getQuestionAnalytics: async (questionId) => {
+  getParticipantAnalytics: async (sessionId) => {
     try {
-      const response = await apiClient.get(`/api/quiz-analytics/questions/${questionId}`);
+      const response = await apiClient.get(`/api/quiz-sessions/${sessionId}/participant-analytics`);
       return response.data;
     } catch (error) {
-      console.error(`Error fetching analytics for question ${questionId}:`, error);
-      const errorMessage = error.response?.data?.detail || "Could not load question analytics.";
+      console.error(`Error fetching participant analytics for session ${sessionId}:`, error);
+      const errorMessage = error.response?.data?.detail || "Could not load participant analytics.";
       throw new Error(errorMessage);
     }
   },
 
   /**
-   * Get comparative analytics for a quiz
+   * Get detailed analytics for a single participant
+   * Returns participant stats with all their responses
    */
-  getComparativeAnalytics: async (quizId) => {
+  getParticipantDetailAnalytics: async (sessionId, participantId) => {
     try {
-      const response = await apiClient.get(`/api/quiz-analytics/quizzes/${quizId}/comparative`);
+      const response = await apiClient.get(`/api/quiz-sessions/${sessionId}/participant-analytics/${participantId}`);
       return response.data;
     } catch (error) {
-      console.error(`Error fetching comparative analytics for quiz ${quizId}:`, error);
-      const errorMessage = error.response?.data?.detail || "Could not load comparative analytics.";
+      console.error(`Error fetching analytics for participant ${participantId}:`, error);
+      const errorMessage = error.response?.data?.detail || "Could not load participant details.";
       throw new Error(errorMessage);
     }
   },
 
   /**
    * Export session results as CSV
+   * Automatically downloads the CSV file
    */
   exportSessionCSV: async (sessionId) => {
     try {
-      const response = await apiClient.get(`/api/quiz-analytics/sessions/${sessionId}/export-csv`, {
+      const response = await apiClient.get(`/api/quiz-sessions/${sessionId}/export/csv`, {
         responseType: 'blob'
       });
 
       // Create download link
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const contentDisposition = response.headers['content-disposition'];
-      let fileName = `quiz_results_${sessionId}.csv`;
+      let fileName = `quiz_session_${sessionId}_analytics.csv`;
 
       if (contentDisposition) {
         const fileNameMatch = contentDisposition.match(/filename="(.+)"/);
@@ -397,43 +401,11 @@ const quizService = {
       link.click();
       link.parentNode.removeChild(link);
       window.URL.revokeObjectURL(url);
+
+      console.log(`✅ CSV exported successfully: ${fileName}`);
     } catch (error) {
       console.error(`Error exporting CSV for session ${sessionId}:`, error);
       throw new Error("Failed to export quiz results. Please try again.");
-    }
-  },
-
-  /**
-   * Export detailed session results as CSV
-   */
-  exportSessionDetailedCSV: async (sessionId) => {
-    try {
-      const response = await apiClient.get(`/api/quiz-analytics/sessions/${sessionId}/export-detailed-csv`, {
-        responseType: 'blob'
-      });
-
-      // Create download link
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const contentDisposition = response.headers['content-disposition'];
-      let fileName = `quiz_detailed_${sessionId}.csv`;
-
-      if (contentDisposition) {
-        const fileNameMatch = contentDisposition.match(/filename="(.+)"/);
-        if (fileNameMatch && fileNameMatch.length === 2) {
-          fileName = fileNameMatch[1];
-        }
-      }
-
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', fileName);
-      document.body.appendChild(link);
-      link.click();
-      link.parentNode.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error(`Error exporting detailed CSV for session ${sessionId}:`, error);
-      throw new Error("Failed to export detailed quiz results. Please try again.");
     }
   },
 

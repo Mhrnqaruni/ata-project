@@ -885,3 +885,180 @@ def get_my_stats(
         "joined_at": participant.joined_at,
         "last_seen_at": participant.last_seen_at
     }
+
+
+# ==================== ANALYTICS ENDPOINTS (Authenticated) ====================
+
+@router.get("/{session_id}/analytics", response_model=quiz_model.SessionAnalytics, summary="Get Session Analytics")
+def get_session_analytics(
+    session_id: str,
+    db: DatabaseService = Depends(get_db_service),
+    current_user: UserModel = Depends(get_current_active_user)
+):
+    """
+    Get comprehensive analytics for a completed quiz session.
+
+    Includes:
+    - Participant statistics (total, active, avg/median/high/low scores)
+    - Question completion stats
+    - Overall accuracy rate
+    - Session duration
+    - Question-level analytics (for each question: responses, accuracy, avg time)
+
+    Path Parameters:
+    - session_id: Session ID
+
+    Returns:
+    - Complete session analytics with question breakdown
+
+    Raises:
+    - 403: User doesn't own this session
+    - 404: Session not found
+    """
+    try:
+        analytics = quiz_service.get_session_analytics(
+            session_id=session_id,
+            user_id=current_user.id,
+            db=db
+        )
+        return analytics
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(e)
+        )
+
+
+@router.get("/{session_id}/participant-analytics", response_model=List[quiz_model.ParticipantAnalytics], summary="Get All Participants Analytics")
+def get_participant_analytics(
+    session_id: str,
+    db: DatabaseService = Depends(get_db_service),
+    current_user: UserModel = Depends(get_current_active_user)
+):
+    """
+    Get analytics for all participants in a session.
+
+    Returns list sorted by rank (score descending, time ascending).
+
+    For each participant:
+    - Rank, name, score
+    - Correct/total answers and accuracy rate
+    - Total time and average time per question
+
+    Path Parameters:
+    - session_id: Session ID
+
+    Returns:
+    - List of participant analytics
+
+    Raises:
+    - 403: User doesn't own this session
+    - 404: Session not found
+    """
+    try:
+        analytics_list = quiz_service.get_participant_analytics_list(
+            session_id=session_id,
+            user_id=current_user.id,
+            db=db
+        )
+        return analytics_list
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(e)
+        )
+
+
+@router.get("/{session_id}/participant-analytics/{participant_id}", response_model=quiz_model.ParticipantAnalytics, summary="Get Individual Participant Analytics")
+def get_participant_detail(
+    session_id: str,
+    participant_id: str,
+    db: DatabaseService = Depends(get_db_service),
+    current_user: UserModel = Depends(get_current_active_user)
+):
+    """
+    Get detailed analytics for a single participant including all their responses.
+
+    Returns:
+    - Participant summary stats
+    - Complete list of responses with:
+      - Question ID
+      - Correctness and points earned
+      - Correct answer and explanation
+      - Time taken
+
+    Path Parameters:
+    - session_id: Session ID
+    - participant_id: Participant ID
+
+    Returns:
+    - Detailed participant analytics with all responses
+
+    Raises:
+    - 403: User doesn't own this session
+    - 404: Session or participant not found
+    """
+    try:
+        analytics = quiz_service.get_participant_detail_analytics(
+            participant_id=participant_id,
+            session_id=session_id,
+            user_id=current_user.id,
+            db=db
+        )
+        return analytics
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(e)
+        )
+
+
+@router.get("/{session_id}/export/csv", summary="Export Session to CSV")
+def export_session_csv(
+    session_id: str,
+    db: DatabaseService = Depends(get_db_service),
+    current_user: UserModel = Depends(get_current_active_user)
+):
+    """
+    Export session data to CSV format.
+
+    CSV includes:
+    - Base columns: Rank, Name, Score, Correct, Total, Accuracy, Time, Avg Time
+    - Question columns: Q1, Q2, etc. (with ✓ for correct, ✗ for incorrect, - for poll)
+
+    Path Parameters:
+    - session_id: Session ID
+
+    Returns:
+    - CSV file download
+
+    Raises:
+    - 403: User doesn't own this session
+    - 404: Session not found
+    """
+    from fastapi.responses import Response
+
+    try:
+        csv_content = quiz_service.export_session_to_csv(
+            session_id=session_id,
+            user_id=current_user.id,
+            db=db
+        )
+
+        # Return CSV with proper headers for download
+        return Response(
+            content=csv_content,
+            media_type="text/csv",
+            headers={
+                "Content-Disposition": f"attachment; filename=quiz_session_{session_id}_analytics.csv"
+            }
+        )
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(e)
+        )

@@ -835,3 +835,423 @@ def get_questions_for_participant(session_id: str, participant_id: str, db: Data
         q.pop('explanation', None)  # Don't show until after answer
 
     return randomized
+
+
+# ==================== ANALYTICS SERVICE FUNCTIONS ====================
+
+def get_session_analytics(session_id: str, user_id: str, db: DatabaseService) -> Dict:
+    """
+    Calculate comprehensive analytics for a completed quiz session.
+
+    Returns session summary with:
+    - Participant statistics (total, active, avg/median/high/low scores)
+    - Question completion stats
+    - Overall accuracy rate
+    - Session duration
+    - Question-level analytics
+
+    Args:
+        session_id: Session ID
+        user_id: User ID (ownership validation)
+        db: Database service
+
+    Returns:
+        Dictionary matching SessionAnalytics schema
+
+    Raises:
+        ValueError: If session not found or user doesn't own it
+    """
+    logger.info(f"[Analytics] Generating session analytics: session_id={session_id}")
+
+    # Get session with ownership validation
+    session = db.get_quiz_session_by_id(session_id, user_id=user_id)
+    if not session:
+        raise ValueError("Session not found or access denied")
+
+    # Get quiz details
+    quiz = db.get_quiz_by_id(session.quiz_id, user_id)
+    if not quiz:
+        raise ValueError("Quiz not found")
+
+    # Get all participants
+    participants = db.get_participants_by_session(session_id, active_only=False)
+    total_participants = len(participants)
+    active_participants = len([p for p in participants if p.is_active])
+
+    # Get all questions
+    questions = db.get_questions_by_quiz_id(session.quiz_id, user_id)
+    total_questions = len(questions)
+
+    # Calculate questions completed (based on current_question_index)
+    questions_completed = 0
+    if session.current_question_index is not None:
+        questions_completed = min(session.current_question_index + 1, total_questions)
+    elif session.status == SessionStatus.COMPLETED:
+        questions_completed = total_questions
+
+    # Calculate participant score statistics
+    scores = [p.score for p in participants] if participants else [0]
+    average_score = sum(scores) / len(scores) if scores else 0.0
+
+    # Calculate median score
+    sorted_scores = sorted(scores)
+    n = len(sorted_scores)
+    if n == 0:
+        median_score = 0.0
+    elif n % 2 == 0:
+        median_score = (sorted_scores[n // 2 - 1] + sorted_scores[n // 2]) / 2.0
+    else:
+        median_score = float(sorted_scores[n // 2])
+
+    highest_score = max(scores) if scores else 0
+    lowest_score = min(scores) if scores else 0
+
+    # Calculate overall accuracy rate
+    total_correct = sum(p.correct_answers for p in participants)
+    total_responses = sum(len(db.get_responses_by_participant(p.id)) for p in participants)
+    average_accuracy_rate = total_correct / total_responses if total_responses > 0 else 0.0
+
+    # Calculate session duration
+    duration_minutes = None
+    if session.started_at and session.ended_at:
+        duration_seconds = (session.ended_at - session.started_at).total_seconds()
+        duration_minutes = duration_seconds / 60.0
+
+    # Get question-level analytics
+    question_analytics_list = []
+    for question in questions:
+        q_stats = get_question_analytics_single(question.id, session_id, db)
+        question_analytics_list.append(q_stats)
+
+    logger.info(f"[Analytics] Session summary: {total_participants} participants, "
+               f"avg_score={average_score:.1f}, accuracy={average_accuracy_rate:.2%}")
+
+    return {
+        "session_id": str(session.id),
+        "quiz_title": quiz.title,
+        "room_code": session.room_code,
+        "status": session.status,
+        "total_participants": total_participants,
+        "active_participants": active_participants,
+        "total_questions": total_questions,
+        "questions_completed": questions_completed,
+        "average_score": round(average_score, 2),
+        "median_score": round(median_score, 2),
+        "highest_score": highest_score,
+        "lowest_score": lowest_score,
+        "average_accuracy_rate": round(average_accuracy_rate, 4),
+        "started_at": session.started_at,
+        "ended_at": session.ended_at,
+        "duration_minutes": round(duration_minutes, 2) if duration_minutes else None,
+        "question_analytics": question_analytics_list
+    }
+
+
+def get_question_analytics_single(question_id: str, session_id: str, db: DatabaseService) -> Dict:
+    """
+    Calculate analytics for a single question in a session.
+
+    Returns:
+    - Total responses
+    - Correct count and accuracy rate
+    - Average time taken
+    - Answer distribution (for multiple choice/poll)
+
+    Args:
+        question_id: Question ID
+        session_id: Session ID (to filter responses)
+        db: Database service
+
+    Returns:
+        Dictionary matching QuestionAnalytics schema
+    """
+    from sqlalchemy import func
+    from ..db.models.quiz_models import QuizResponse, QuizQuestion
+
+    # Get question details
+    question = db.get_question_by_id(question_id)
+    if not question:
+        raise ValueError("Question not found")
+
+    # Get all responses for this question in this session
+    responses = db.db_session.query(QuizResponse).filter(
+        QuizResponse.question_id == question_id,
+        QuizResponse.session_id == session_id
+    ).all()
+
+    total_responses = len(responses)
+
+    if total_responses == 0:
+        return {
+            "question_id": str(question.id),
+            "question_text": question.question_text,
+            "question_type": question.question_type,
+            "total_responses": 0,
+            "correct_responses": 0,
+            "accuracy_rate": 0.0,
+            "average_time_ms": 0.0,
+            "options_distribution": None
+        }
+
+    # Calculate correctness stats
+    correct_responses = len([r for r in responses if r.is_correct is True])
+    accuracy_rate = correct_responses / total_responses if total_responses > 0 else 0.0
+
+    # Calculate average time
+    total_time = sum(r.time_taken_ms for r in responses)
+    average_time_ms = total_time / total_responses if total_responses > 0 else 0.0
+
+    # Calculate answer distribution for multiple choice and poll questions
+    options_distribution = None
+    if question.question_type in [QuestionType.MULTIPLE_CHOICE, QuestionType.POLL]:
+        distribution = {}
+        for response in responses:
+            # Answer is stored as JSONB array, e.g., ["A"] or [0]
+            answer_value = response.answer[0] if response.answer else None
+            if answer_value is not None:
+                answer_key = str(answer_value)
+                distribution[answer_key] = distribution.get(answer_key, 0) + 1
+        options_distribution = distribution
+
+    return {
+        "question_id": str(question.id),
+        "question_text": question.question_text,
+        "question_type": question.question_type,
+        "total_responses": total_responses,
+        "correct_responses": correct_responses,
+        "accuracy_rate": round(accuracy_rate, 4),
+        "average_time_ms": round(average_time_ms, 2),
+        "options_distribution": options_distribution
+    }
+
+
+def get_participant_analytics_list(session_id: str, user_id: str, db: DatabaseService) -> List[Dict]:
+    """
+    Get analytics for all participants in a session.
+
+    Returns list sorted by rank (score desc, time asc).
+
+    Args:
+        session_id: Session ID
+        user_id: User ID (ownership validation)
+        db: Database service
+
+    Returns:
+        List of dictionaries with participant stats
+    """
+    logger.info(f"[Analytics] Generating participant analytics list: session_id={session_id}")
+
+    # Validate session ownership
+    session = db.get_quiz_session_by_id(session_id, user_id=user_id)
+    if not session:
+        raise ValueError("Session not found or access denied")
+
+    # Get leaderboard (sorted by score desc, time asc)
+    participants = db.get_leaderboard(session_id, limit=1000)
+
+    result = []
+    for rank, participant in enumerate(participants, start=1):
+        # Get participant responses
+        responses = db.get_responses_by_participant(participant.id)
+        total_answers = len(responses)
+
+        # Calculate accuracy rate
+        accuracy_rate = participant.correct_answers / total_answers if total_answers > 0 else 0.0
+
+        # Calculate average time per question
+        avg_time = participant.total_time_ms / total_answers if total_answers > 0 else 0.0
+
+        # Get display name (handle both guest and student)
+        display_name = participant.guest_name if participant.guest_name else "Student"
+        if participant.student_id and not participant.guest_name:
+            # Try to get student name from database
+            try:
+                student = db.get_student_by_student_id(participant.student_id)
+                if student and student.name:
+                    display_name = student.name
+                else:
+                    display_name = f"Student {participant.student_id}"
+            except:
+                display_name = f"Student {participant.student_id}"
+
+        result.append({
+            "participant_id": str(participant.id),
+            "display_name": display_name,
+            "score": participant.score,
+            "correct_answers": participant.correct_answers,
+            "total_answers": total_answers,
+            "accuracy_rate": round(accuracy_rate, 4),
+            "total_time_ms": participant.total_time_ms,
+            "average_time_per_question_ms": round(avg_time, 2),
+            "rank": rank
+        })
+
+    logger.info(f"[Analytics] Generated analytics for {len(result)} participants")
+    return result
+
+
+def get_participant_detail_analytics(participant_id: str, session_id: str, user_id: str, db: DatabaseService) -> Dict:
+    """
+    Get detailed analytics for a single participant including all their responses.
+
+    Args:
+        participant_id: Participant ID
+        session_id: Session ID
+        user_id: User ID (ownership validation)
+        db: Database service
+
+    Returns:
+        Dictionary with participant details and all responses
+
+    Raises:
+        ValueError: If participant not found or session ownership invalid
+    """
+    logger.info(f"[Analytics] Getting participant detail: participant_id={participant_id}")
+
+    # Validate session ownership
+    session = db.get_quiz_session_by_id(session_id, user_id=user_id)
+    if not session:
+        raise ValueError("Session not found or access denied")
+
+    # Get participant
+    participant = db.get_participant_by_id(participant_id)
+    if not participant or participant.session_id != session_id:
+        raise ValueError("Participant not found in this session")
+
+    # Get all responses
+    responses = db.get_responses_by_participant(participant_id)
+    total_answers = len(responses)
+
+    # Calculate accuracy and rank
+    accuracy_rate = participant.correct_answers / total_answers if total_answers > 0 else 0.0
+    avg_time = participant.total_time_ms / total_answers if total_answers > 0 else 0.0
+    rank, total_participants = db.get_participant_rank(participant_id)
+
+    # Get display name
+    display_name = participant.guest_name if participant.guest_name else "Student"
+    if participant.student_id and not participant.guest_name:
+        try:
+            student = db.get_student_by_student_id(participant.student_id)
+            if student and student.name:
+                display_name = student.name
+            else:
+                display_name = f"Student {participant.student_id}"
+        except:
+            display_name = f"Student {participant.student_id}"
+
+    # Build response details
+    response_list = []
+    for response in responses:
+        question = db.get_question_by_id(response.question_id)
+        if question:
+            response_list.append({
+                "response_id": str(response.id),
+                "question_id": str(response.question_id),
+                "is_correct": response.is_correct,
+                "points_earned": response.points_earned,
+                "correct_answer": question.correct_answer if question.correct_answer else None,
+                "explanation": question.explanation,
+                "time_taken_ms": response.time_taken_ms
+            })
+
+    return {
+        "participant_id": str(participant.id),
+        "display_name": display_name,
+        "score": participant.score,
+        "correct_answers": participant.correct_answers,
+        "total_answers": total_answers,
+        "accuracy_rate": round(accuracy_rate, 4),
+        "total_time_ms": participant.total_time_ms,
+        "average_time_per_question_ms": round(avg_time, 2),
+        "rank": rank,
+        "responses": response_list
+    }
+
+
+def export_session_to_csv(session_id: str, user_id: str, db: DatabaseService) -> str:
+    """
+    Export session data to CSV format.
+
+    Returns CSV string with columns:
+    - Rank, Name, Score, Correct, Total, Accuracy, Time (ms), Avg Time per Q
+    - Followed by individual question columns (Q1, Q2, etc.)
+
+    Args:
+        session_id: Session ID
+        user_id: User ID (ownership validation)
+        db: Database service
+
+    Returns:
+        CSV string
+    """
+    import csv
+    import io
+
+    logger.info(f"[Analytics] Exporting session to CSV: session_id={session_id}")
+
+    # Validate session ownership
+    session = db.get_quiz_session_by_id(session_id, user_id=user_id)
+    if not session:
+        raise ValueError("Session not found or access denied")
+
+    # Get quiz and questions
+    quiz = db.get_quiz_by_id(session.quiz_id, user_id)
+    questions = db.get_questions_by_quiz_id(session.quiz_id, user_id)
+
+    # Get participant analytics
+    participants_data = get_participant_analytics_list(session_id, user_id, db)
+
+    # Build CSV
+    output = io.StringIO()
+
+    # Determine columns
+    base_columns = [
+        "Rank", "Name", "Score", "Correct Answers", "Total Answers",
+        "Accuracy (%)", "Total Time (ms)", "Avg Time per Question (ms)"
+    ]
+
+    # Add question columns
+    question_columns = [f"Q{i+1} ({q.question_type})" for i, q in enumerate(questions)]
+    all_columns = base_columns + question_columns
+
+    writer = csv.DictWriter(output, fieldnames=all_columns)
+    writer.writeheader()
+
+    # Write participant data
+    for p_data in participants_data:
+        participant = db.get_participant_by_id(p_data["participant_id"])
+        responses = db.get_responses_by_participant(participant.id)
+
+        # Build question responses dict (keyed by question order)
+        question_results = {}
+        for response in responses:
+            question = db.get_question_by_id(response.question_id)
+            if question:
+                q_key = f"Q{question.order_index + 1} ({question.question_type})"
+                if response.is_correct is True:
+                    question_results[q_key] = "✓"
+                elif response.is_correct is False:
+                    question_results[q_key] = "✗"
+                else:
+                    question_results[q_key] = "-"  # Poll or no answer
+
+        row = {
+            "Rank": p_data["rank"],
+            "Name": p_data["display_name"],
+            "Score": p_data["score"],
+            "Correct Answers": p_data["correct_answers"],
+            "Total Answers": p_data["total_answers"],
+            "Accuracy (%)": f"{p_data['accuracy_rate'] * 100:.1f}",
+            "Total Time (ms)": p_data["total_time_ms"],
+            "Avg Time per Question (ms)": f"{p_data['average_time_per_question_ms']:.1f}"
+        }
+
+        # Add question results
+        row.update(question_results)
+
+        writer.writerow(row)
+
+    csv_content = output.getvalue()
+    logger.info(f"[Analytics] CSV export complete: {len(participants_data)} participants")
+
+    return csv_content

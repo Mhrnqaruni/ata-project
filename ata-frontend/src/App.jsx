@@ -44,6 +44,7 @@ import Quizzes from './pages/Quizzes';
 import QuizBuilder from './pages/quizzes/QuizBuilder';
 import QuizHost from './pages/quizzes/QuizHost';
 import QuizParticipant from './pages/quizzes/QuizParticipant';
+import QuizAnalytics from './pages/quizzes/QuizAnalytics';
 
 /**
  * A layout component that wraps all protected pages.
@@ -106,6 +107,7 @@ const ThemedApp = () => {
           <Route path="/quizzes" element={<Quizzes />} />
           <Route path="/quizzes/new" element={<QuizBuilder />} />
           <Route path="/quizzes/:quizId/edit" element={<QuizBuilder />} />
+          <Route path="/quizzes/:quizId/analytics" element={<QuizAnalytics />} />
           <Route path="/quizzes/sessions/:sessionId/host" element={<QuizHost />} />
           <Route path="/chat/:sessionId?" element={<Chatbot />} />
 
