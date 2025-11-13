@@ -187,7 +187,9 @@ const QuizHost = () => {
 
       // Load initial leaderboard
       const leaderboardData = await quizService.getLeaderboard(sessionId);
-      setLeaderboard(leaderboardData);
+      console.log('[QuizHost] Leaderboard API response:', leaderboardData);
+      // FIX: Extract entries array from LeaderboardResponse object
+      setLeaderboard(leaderboardData.entries || []);
 
       setError(null);
     } catch (err) {

@@ -392,12 +392,13 @@ def get_leaderboard(
     total_participants = len(db.get_participants_by_session(session_id))
 
     # Build leaderboard entries
+    # FIX: Convert UUID to string for JSON serialization
     entries = []
     for rank, p in enumerate(participants, start=1):
         display_name = p.guest_name if p.guest_name else (p.student.name if p.student else "Unknown")
         entries.append({
             "rank": rank,
-            "participant_id": p.id,
+            "participant_id": str(p.id),
             "display_name": display_name,
             "score": p.score,
             "correct_answers": p.correct_answers,

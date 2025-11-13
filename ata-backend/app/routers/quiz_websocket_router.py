@@ -200,8 +200,9 @@ async def quiz_session_websocket(
             total_participants = len(participants)
 
             # Broadcast to all in room
+            # FIX: Convert UUID to string for JSON serialization
             message = build_participant_joined_message(
-                participant_id=participant.id,
+                participant_id=str(participant.id),
                 display_name=display_name,
                 total_participants=total_participants
             )
@@ -290,8 +291,9 @@ async def quiz_session_websocket(
             total_participants = len(participants)
 
             # Broadcast to all in room
+            # FIX: Convert UUID to string for JSON serialization
             message = build_participant_left_message(
-                participant_id=participant.id,
+                participant_id=str(participant.id),
                 display_name=display_name,
                 total_participants=total_participants
             )
@@ -325,10 +327,11 @@ async def _send_current_state(
             return
 
         # Send current session status
+        # FIX: Convert UUID to string for JSON serialization
         await connection_manager.send_personal_message(websocket, {
             "type": "current_state",
             "session": {
-                "id": session.id,
+                "id": str(session.id),
                 "status": session.status,
                 "current_question_index": session.current_question_index,
                 "started_at": session.started_at.isoformat() if session.started_at else None
@@ -363,11 +366,12 @@ async def _send_leaderboard(
         )
 
         # Format leaderboard
+        # FIX: Convert UUID to string for JSON serialization
         leaderboard = []
         for rank, participant in enumerate(top_participants, start=1):
             leaderboard.append({
                 "rank": rank,
-                "participant_id": participant.id,
+                "participant_id": str(participant.id),
                 "display_name": participant.guest_name or "Student",
                 "score": participant.score,
                 "correct_answers": participant.correct_answers,
@@ -447,11 +451,12 @@ async def _handle_submit_answer(
             })
 
             # FIX #10: Get updated leaderboard and broadcast to everyone
+            # FIX: Convert UUID to string for JSON serialization
             top_participants = db.get_leaderboard(session_id, limit=10)
             leaderboard_data = [
                 {
                     "rank": rank,
-                    "participant_id": p.id,
+                    "participant_id": str(p.id),
                     "display_name": p.guest_name or "Student",
                     "score": p.score,
                     "correct_answers": p.correct_answers,
