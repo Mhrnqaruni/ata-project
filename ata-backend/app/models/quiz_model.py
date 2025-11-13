@@ -45,6 +45,7 @@ class QuizStatus(str, Enum):
     """Quiz publication status."""
     DRAFT = "draft"
     PUBLISHED = "published"
+    COMPLETED = "completed"  # Quiz has been used and completed
     ARCHIVED = "archived"
 
 

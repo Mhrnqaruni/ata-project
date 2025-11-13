@@ -338,7 +338,7 @@ async def end_session(
 
 
 @router.post("/{session_id}/next-question", response_model=quiz_model.QuizSessionDetail, summary="Move to Next Question")
-def next_question(
+async def next_question(
     session_id: str,
     db: DatabaseService = Depends(get_db_service),
     current_user: UserModel = Depends(get_current_active_user)
@@ -374,6 +374,21 @@ def next_question(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="No more questions remaining"
         )
+
+    # FIX: Broadcast new question to all participants via WebSocket
+    current_question = questions[session.current_question_index]
+    await connection_manager.broadcast_to_room(
+        session_id,
+        build_question_started_message(
+            question_id=str(current_question.id),
+            question_text=current_question.question_text,
+            question_type=current_question.question_type,
+            options=current_question.options if current_question.options else [],
+            points=current_question.points,
+            order_index=session.current_question_index,
+            time_limit_seconds=current_question.time_limit_seconds
+        )
+    )
 
     return {
         **session.__dict__,
