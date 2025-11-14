@@ -356,7 +356,8 @@ async def next_question(
     - 404: Session not found
     - 422: No more questions or session not active
     """
-    session = db.move_to_next_question(session_id, current_user.id)
+    # FIX: Get session BEFORE incrementing to validate first
+    session = db.get_quiz_session_by_id(session_id, current_user.id)
     if not session:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -368,14 +369,18 @@ async def next_question(
     questions = db.get_questions_by_quiz_id(session.quiz_id, current_user.id)
     participants = db.get_participants_by_session(session_id)
 
-    # Validate we haven't exceeded question count
-    if session.current_question_index >= len(questions):
+    # FIX: Validate BEFORE incrementing the index
+    next_index = (session.current_question_index or -1) + 1
+    if next_index >= len(questions):
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="No more questions remaining"
         )
 
-    # FIX: Broadcast new question to all participants via WebSocket
+    # Now increment the index
+    session = db.move_to_next_question(session_id, current_user.id)
+
+    # Broadcast new question to all participants via WebSocket
     current_question = questions[session.current_question_index]
     await connection_manager.broadcast_to_room(
         session_id,

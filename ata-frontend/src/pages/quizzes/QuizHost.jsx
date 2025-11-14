@@ -111,6 +111,7 @@ const Leaderboard = ({ participants }) => {
                   />
                 </Box>
               }
+              secondaryTypographyProps={{ component: 'div' }}
             />
           </ListItem>
         </Fade>
