@@ -209,6 +209,12 @@ const QuestionDisplay = ({ question, onAnswer, timeRemaining }) => {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
+  // FIX: Reset state when question changes (allows answering new questions)
+  useEffect(() => {
+    setSelectedAnswer(null);
+    setIsSubmitted(false);
+  }, [question.id]); // Reset when question ID changes
+
   const handleSelect = (answerIndex) => {
     if (!isSubmitted) {
       setSelectedAnswer(answerIndex);
