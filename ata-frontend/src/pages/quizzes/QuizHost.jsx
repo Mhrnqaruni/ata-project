@@ -186,6 +186,19 @@ const QuizHost = () => {
     };
   }, [session?.id]); // Only re-run when session.id changes, not entire session object
 
+  // FIX: Load auto-advance settings from session config
+  useEffect(() => {
+    if (session?.config_snapshot) {
+      const config = session.config_snapshot;
+      if (config.auto_advance_enabled !== undefined) {
+        setAutoAdvanceEnabled(config.auto_advance_enabled);
+      }
+      if (config.cooldown_seconds !== undefined) {
+        setCooldownSeconds(config.cooldown_seconds);
+      }
+    }
+  }, [session?.config_snapshot]);
+
   const loadSession = async () => {
     try {
       setIsLoading(true);
@@ -596,11 +609,11 @@ const QuizHost = () => {
             <CardContent>
               <Typography variant="h6" gutterBottom>Session Controls</Typography>
 
-              {/* FIX Issue 2: Auto-Advance Controls */}
-              {session?.status === 'active' && (
+              {/* FIX Issue 2: Auto-Advance Controls - Only show BEFORE quiz starts */}
+              {session?.status === 'waiting' && (
                 <Box sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 1, backgroundColor: '#f9f9f9' }}>
                   <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-                    Auto-Advance Settings
+                    ⚙️ Auto-Advance Settings (Configure Before Starting)
                   </Typography>
                   <FormControlLabel
                     control={
@@ -627,9 +640,19 @@ const QuizHost = () => {
                     disabled={!autoAdvanceEnabled}
                     size="small"
                     sx={{ ml: 2, width: 150 }}
-                    inputProps={{ min: 1 }}
+                    inputProps={{ min: 1, max: 60 }}
                   />
+                  <Typography variant="caption" display="block" sx={{ mt: 1, color: 'text.secondary' }}>
+                    Auto-advance will automatically move to the next question after the timer + cooldown period.
+                  </Typography>
                 </Box>
+              )}
+
+              {/* Show read-only auto-advance status during active quiz */}
+              {session?.status === 'active' && autoAdvanceEnabled && (
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  🚀 Auto-Advance Enabled ({cooldownSeconds}s cooldown)
+                </Alert>
               )}
 
               {session?.status === 'waiting' && (

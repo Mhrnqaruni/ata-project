@@ -227,6 +227,19 @@ async def start_session(
                 )
             )
 
+            # FIX: Schedule auto-advance if enabled (from settings configured before quiz start)
+            config = session.config_snapshot or {}
+            if config.get("auto_advance_enabled"):
+                job_id = quiz_service.schedule_auto_advance(
+                    session_id,
+                    first_question.time_limit_seconds or 0,
+                    config.get("cooldown_seconds", 10),
+                    db
+                )
+                # Store job_id in config for cancellation
+                config["auto_advance_job_id"] = job_id
+                db.update_quiz_session(session_id, current_user.id, {"config_snapshot": config})
+
         return {
             **session.__dict__,
             "quiz_title": quiz.title if quiz else "Unknown",
@@ -441,12 +454,9 @@ async def next_question(
             config.get("cooldown_seconds", 10),
             db
         )
-        # Update job_id in config
+        # Update job_id in config using proper DatabaseService method
         config["auto_advance_job_id"] = job_id
-        from sqlalchemy.orm.attributes import flag_modified
-        session.config_snapshot = config
-        flag_modified(session, "config_snapshot")
-        db.db.commit()
+        db.update_quiz_session(session_id, current_user.id, {"config_snapshot": config})
 
     return {
         **session.__dict__,
@@ -456,7 +466,7 @@ async def next_question(
     }
 
 
-@router.post("/{session_id}/toggle-auto-advance", summary="Toggle Auto-Advance")
+@router.post("/{session_id}/toggle-auto-advance", summary="Configure Auto-Advance (Before Quiz Starts)")
 async def toggle_auto_advance(
     session_id: str,
     enabled: bool,
@@ -465,7 +475,7 @@ async def toggle_auto_advance(
     current_user: UserModel = Depends(get_current_active_user)
 ):
     """
-    Enable or disable auto-advance for a session.
+    Configure auto-advance settings before quiz starts.
 
     Path Parameters:
     - session_id: Session ID
@@ -479,6 +489,7 @@ async def toggle_auto_advance(
 
     Raises:
     - 404: Session not found or access denied
+    - 422: Cannot change settings during active quiz
     """
     # Verify ownership
     session = db.get_quiz_session_by_id(session_id, current_user.id)
@@ -488,56 +499,22 @@ async def toggle_auto_advance(
             detail=f"Session with ID {session_id} not found or access denied"
         )
 
-    # Update config snapshot
+    # FIX: Only allow configuring auto-advance BEFORE quiz starts
+    if session.status != 'waiting':
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Auto-advance settings can only be changed before the quiz starts"
+        )
+
+    # Update config snapshot using proper DatabaseService method
     config = session.config_snapshot or {}
     config["auto_advance_enabled"] = enabled
     config["cooldown_seconds"] = cooldown_seconds
 
-    # Use SQLAlchemy flag_modified for JSONB update
-    from sqlalchemy.orm.attributes import flag_modified
-    session.config_snapshot = config
-    flag_modified(session, "config_snapshot")
-    db.db.commit()
+    # FIX: Use DatabaseService update method instead of direct db.commit()
+    db.update_quiz_session(session_id, current_user.id, {"config_snapshot": config})
 
-    if enabled:
-        # Start auto-advance for current question
-        questions = db.get_questions_by_quiz_id(session.quiz_id, current_user.id)
-        if session.current_question_index is not None and session.current_question_index < len(questions):
-            current_question = questions[session.current_question_index]
-
-            # Calculate remaining time for current question
-            from datetime import datetime
-            if session.question_started_at:
-                elapsed = (datetime.now() - session.question_started_at).total_seconds()
-                remaining_time = max(0, (current_question.time_limit_seconds or 0) - elapsed)
-            else:
-                remaining_time = current_question.time_limit_seconds or 0
-
-            # Schedule auto-advance
-            job_id = quiz_service.schedule_auto_advance(
-                session_id,
-                int(remaining_time),
-                cooldown_seconds,
-                db
-            )
-
-            # Store job_id in config
-            config["auto_advance_job_id"] = job_id
-            session.config_snapshot = config
-            flag_modified(session, "config_snapshot")
-            db.db.commit()
-    else:
-        # Cancel pending auto-advance
-        quiz_service.cancel_auto_advance(session_id, db)
-
-        # Clear job_id from config
-        if "auto_advance_job_id" in config:
-            del config["auto_advance_job_id"]
-            session.config_snapshot = config
-            flag_modified(session, "config_snapshot")
-            db.db.commit()
-
-    # Broadcast setting change to all clients
+    # Broadcast setting change to connected clients
     await connection_manager.broadcast_to_room(
         session_id,
         {
