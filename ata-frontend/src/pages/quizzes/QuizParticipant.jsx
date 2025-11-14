@@ -248,20 +248,37 @@ const QuestionDisplay = ({ question, onAnswer, timeRemaining, cooldownRemaining,
     <Container maxWidth="lg">
       <Fade in timeout={500}>
         <Box sx={{ mt: 4 }}>
-          {/* Timer */}
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 3 }}>
-            <TimerIcon sx={{ mr: 1, color: getProgressColor() }} />
-            <Typography variant="h5" color={`${getProgressColor()}.main`}>
-              {timeRemaining}s
-            </Typography>
-          </Box>
+          {/* Timer - Show question timer or cooldown timer */}
+          {cooldownRemaining > 0 ? (
+            // Cooldown Timer
+            <Box sx={{ textAlign: 'center', mb: 3 }}>
+              <Alert severity="info" sx={{ py: 2 }}>
+                <Typography variant="h6" sx={{ mb: 1 }}>
+                  Next Question Starting In
+                </Typography>
+                <Typography variant="h3" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                  {cooldownRemaining}s
+                </Typography>
+              </Alert>
+            </Box>
+          ) : (
+            // Question Timer
+            <>
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 3 }}>
+                <TimerIcon sx={{ mr: 1, color: getProgressColor() }} />
+                <Typography variant="h5" color={`${getProgressColor()}.main`}>
+                  {timeRemaining}s
+                </Typography>
+              </Box>
 
-          <LinearProgress
-            variant="determinate"
-            value={(timeRemaining / question.time_limit_seconds) * 100}
-            color={getProgressColor()}
-            sx={{ height: 8, borderRadius: 1, mb: 4 }}
-          />
+              <LinearProgress
+                variant="determinate"
+                value={(timeRemaining / question.time_limit_seconds) * 100}
+                color={getProgressColor()}
+                sx={{ height: 8, borderRadius: 1, mb: 4 }}
+              />
+            </>
+          )}
 
           {/* Question */}
           <Paper sx={{ p: 4, mb: 4, textAlign: 'center' }}>
@@ -325,31 +342,12 @@ const QuestionDisplay = ({ question, onAnswer, timeRemaining, cooldownRemaining,
             </Fade>
           )}
 
-          {/* FIX Issue 1: Show red alert when time expires */}
-          {timeExpired && !isSubmitted && !cooldownRemaining && (
+          {/* FIX Issue 1: Show red alert when time expires (only if no cooldown) */}
+          {timeExpired && !isSubmitted && !cooldownRemaining && !autoAdvanceEnabled && (
             <Fade in>
               <Alert severity="error" sx={{ mt: 4 }}>
                 ⏰ You missed this question - time expired!
               </Alert>
-            </Fade>
-          )}
-
-          {/* FIX Issue 2: Show cooldown countdown when auto-advance is enabled */}
-          {cooldownRemaining > 0 && autoAdvanceEnabled && (
-            <Fade in>
-              <Box sx={{ textAlign: 'center', mt: 4 }}>
-                <Alert severity="info" icon={false} sx={{ p: 3 }}>
-                  <Typography variant="h5" sx={{ mb: 1 }}>
-                    Get Ready!
-                  </Typography>
-                  <Typography variant="h2" sx={{ fontWeight: 700, color: 'primary.main', my: 2 }}>
-                    {cooldownRemaining}
-                  </Typography>
-                  <Typography variant="body1">
-                    Next question starting soon...
-                  </Typography>
-                </Alert>
-              </Box>
             </Fade>
           )}
 

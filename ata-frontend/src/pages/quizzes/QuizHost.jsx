@@ -43,6 +43,7 @@ import LeaderboardIcon from '@mui/icons-material/Leaderboard';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import CloseIcon from '@mui/icons-material/Close';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import TimerIcon from '@mui/icons-material/Timer';
 
 // --- Service Import ---
 import quizService from '../../services/quizService';
@@ -146,6 +147,11 @@ const QuizHost = () => {
   // FIX Issue 2: Auto-advance state
   const [autoAdvanceEnabled, setAutoAdvanceEnabled] = useState(false);
   const [cooldownSeconds, setCooldownSeconds] = useState(10);
+
+  // Timer state for teacher display
+  const [timeRemaining, setTimeRemaining] = useState(0);
+  const [cooldownRemaining, setCooldownRemaining] = useState(0);
+  const timerRef = useRef(null);
 
   // Dialogs
   const [endDialog, setEndDialog] = useState(false);
@@ -316,6 +322,10 @@ const QuizHost = () => {
           ...prev,
           current_question_index: message.question.order_index
         }));
+        // Start timer for teacher display
+        if (message.question.time_limit_seconds) {
+          startTimer(message.question.time_limit_seconds);
+        }
         break;
 
       case 'auto_advance_updated':
@@ -347,6 +357,62 @@ const QuizHost = () => {
       setError(err.message || "Failed to toggle auto-advance.");
     }
   };
+
+  // Timer functions for teacher display
+  const startTimer = (duration) => {
+    console.log('[QuizHost] Starting timer:', duration, 'seconds');
+
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+
+    let remaining = duration;
+    setTimeRemaining(remaining);
+    setCooldownRemaining(0);
+
+    timerRef.current = setInterval(() => {
+      remaining -= 1;
+      setTimeRemaining(remaining);
+
+      if (remaining <= 0) {
+        console.log('[QuizHost] Timer expired');
+        clearInterval(timerRef.current);
+      }
+    }, 1000);
+  };
+
+  // Start cooldown timer when question time expires and auto-advance is enabled
+  useEffect(() => {
+    if (timeRemaining === 0 && autoAdvanceEnabled && currentQuestion && session?.status === 'active') {
+      console.log('[QuizHost] Starting cooldown countdown:', cooldownSeconds, 'seconds');
+      let cooldownLeft = cooldownSeconds;
+      setCooldownRemaining(cooldownLeft);
+
+      const cooldownInterval = setInterval(() => {
+        cooldownLeft -= 1;
+        setCooldownRemaining(cooldownLeft);
+
+        if (cooldownLeft <= 0) {
+          console.log('[QuizHost] Cooldown finished');
+          clearInterval(cooldownInterval);
+          setCooldownRemaining(0);
+        }
+      }, 1000);
+
+      return () => {
+        clearInterval(cooldownInterval);
+      };
+    }
+  }, [timeRemaining, autoAdvanceEnabled, cooldownSeconds, currentQuestion, session?.status]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, []);
 
   const handleStart = async () => {
     try {
@@ -572,6 +638,49 @@ const QuizHost = () => {
               </Box>
             </CardContent>
           </Card>
+
+          {/* Timer Display - Show question timer and cooldown timer */}
+          {currentQuestion && session?.status === 'active' && (
+            <Card sx={{ mb: 2 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>Question Timer</Typography>
+
+                {cooldownRemaining > 0 ? (
+                  // Cooldown Timer
+                  <Box sx={{ textAlign: 'center', py: 2 }}>
+                    <Alert severity="info" sx={{ mb: 2 }}>
+                      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                        Next Question Starting In
+                      </Typography>
+                      <Typography variant="h2" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                        {cooldownRemaining}s
+                      </Typography>
+                    </Alert>
+                  </Box>
+                ) : (
+                  // Question Timer
+                  <Box sx={{ textAlign: 'center', py: 1 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
+                      <TimerIcon sx={{ mr: 1, color: timeRemaining > 10 ? 'success.main' : timeRemaining > 5 ? 'warning.main' : 'error.main' }} />
+                      <Typography
+                        variant="h3"
+                        color={timeRemaining > 10 ? 'success.main' : timeRemaining > 5 ? 'warning.main' : 'error.main'}
+                        sx={{ fontWeight: 700 }}
+                      >
+                        {timeRemaining}s
+                      </Typography>
+                    </Box>
+                    <LinearProgress
+                      variant="determinate"
+                      value={(timeRemaining / (currentQuestion?.time_limit_seconds || 30)) * 100}
+                      color={timeRemaining > 10 ? 'success' : timeRemaining > 5 ? 'warning' : 'error'}
+                      sx={{ height: 8, borderRadius: 1 }}
+                    />
+                  </Box>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Current Question */}
           <Card sx={{ mb: 2 }}>

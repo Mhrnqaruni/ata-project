@@ -16,7 +16,7 @@ from typing import List, Dict, Optional, Tuple
 import string
 import re
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -947,7 +947,7 @@ def submit_answer_with_grading(participant_id: str, question_id: str, answer: Li
         # Get session to check when question started
         session = db.get_quiz_session_by_id(participant.session_id)
         if session and session.question_started_at:
-            elapsed_seconds = (datetime.now() - session.question_started_at).total_seconds()
+            elapsed_seconds = (datetime.now(timezone.utc) - session.question_started_at).total_seconds()
             if elapsed_seconds > question.time_limit_seconds:
                 logger.warning(
                     f"[AnswerSubmit] Time limit exceeded: "

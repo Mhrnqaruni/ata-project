@@ -19,7 +19,7 @@ Business logic (grading, scoring, leaderboards) handled in service layer.
 from typing import List, Dict, Optional, Tuple
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import select, and_, or_, func, desc
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 # Import SQLAlchemy models
 from app.db.models.quiz_models import (
@@ -209,7 +209,7 @@ class QuizSessionRepositorySQL:
                 session.current_question_index = current_index + 1
 
             # Track when this question started for time limit enforcement
-            session.question_started_at = datetime.now()
+            session.question_started_at = datetime.now(timezone.utc)
 
             self.db.commit()
             self.db.refresh(session)
