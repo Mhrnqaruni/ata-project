@@ -395,6 +395,40 @@ async def next_question(
         )
     )
 
+    # FIX Issue 2: Broadcast updated leaderboard after each question
+    # This ensures teacher's live leaderboard updates in real-time
+    leaderboard_entries = []
+    leaderboard_participants = db.get_leaderboard(session_id, limit=100)
+    for rank, p in enumerate(leaderboard_participants, start=1):
+        # Determine display name
+        display_name = "Unknown"
+        if p.guest_name:
+            display_name = p.guest_name
+        elif p.student_id:
+            try:
+                student = db.get_student_by_student_id(p.student_id)
+                display_name = student.name if student else f"Student {p.student_id}"
+            except:
+                display_name = f"Student {p.student_id}"
+
+        leaderboard_entries.append({
+            "rank": rank,
+            "participant_id": str(p.id),
+            "display_name": display_name,
+            "score": p.score,
+            "correct_answers": p.correct_answers,
+            "total_time_ms": p.total_time_ms,
+            "is_active": p.is_active
+        })
+
+    await connection_manager.broadcast_to_room(
+        session_id,
+        {
+            "type": "leaderboard_update",
+            "leaderboard": leaderboard_entries
+        }
+    )
+
     return {
         **session.__dict__,
         "quiz_title": quiz.title if quiz else "Unknown",

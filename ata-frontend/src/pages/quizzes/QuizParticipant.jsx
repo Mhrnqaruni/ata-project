@@ -425,6 +425,7 @@ const QuizParticipant = () => {
 
   const wsRef = useRef(null);
   const timerRef = useRef(null);
+  const leaderboardTimerRef = useRef(null); // FIX: Store leaderboard auto-advance timeout ID
 
   const [phase, setPhase] = useState('join'); // join, waiting, question, leaderboard, finished
   const [session, setSession] = useState(null);
@@ -456,6 +457,13 @@ const QuizParticipant = () => {
         console.log('[QuizParticipant] Clearing timer interval');
         clearInterval(timerRef.current);
         timerRef.current = null;
+      }
+
+      // Cleanup leaderboard timer
+      if (leaderboardTimerRef.current) {
+        console.log('[QuizParticipant] Clearing leaderboard timer');
+        clearTimeout(leaderboardTimerRef.current);
+        leaderboardTimerRef.current = null;
       }
     };
   }, []);
@@ -531,20 +539,42 @@ const QuizParticipant = () => {
 
       case 'leaderboard_update':
         console.log('[QuizParticipant] Leaderboard update received:', {
-          participantCount: message.leaderboard?.length || 0
+          participantCount: message.leaderboard?.length || 0,
+          sessionStatus: session?.status
         });
         setLeaderboard(message.leaderboard || []);
-        setPhase('leaderboard');
-        console.log('[QuizParticipant] Phase changed to: leaderboard (auto-advance in 10s)');
-        // Auto-advance to next question after 10 seconds
-        setTimeout(() => {
-          console.log('[QuizParticipant] Auto-advancing from leaderboard to waiting');
-          setPhase('waiting');
-        }, 10000);
+
+        // FIX Issue 1: Only show leaderboard if session is active
+        // Don't show it on join (when session is still 'waiting')
+        if (session?.status === 'active') {
+          console.log('[QuizParticipant] Session is active, showing leaderboard');
+          setPhase('leaderboard');
+
+          // Clear any existing leaderboard timer
+          if (leaderboardTimerRef.current) {
+            clearTimeout(leaderboardTimerRef.current);
+          }
+
+          // Auto-advance to next question after 10 seconds
+          leaderboardTimerRef.current = setTimeout(() => {
+            console.log('[QuizParticipant] Auto-advancing from leaderboard to waiting');
+            setPhase('waiting');
+          }, 10000);
+        } else {
+          console.log('[QuizParticipant] Session not active, staying in current phase');
+        }
         break;
 
       case 'session_ended':
         console.log('[QuizParticipant] Session ended');
+
+        // FIX Issue 3: Clear leaderboard timer to prevent switching back to waiting
+        if (leaderboardTimerRef.current) {
+          console.log('[QuizParticipant] Clearing leaderboard timer on session end');
+          clearTimeout(leaderboardTimerRef.current);
+          leaderboardTimerRef.current = null;
+        }
+
         setPhase('finished');
         break;
 
