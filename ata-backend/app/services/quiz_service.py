@@ -349,10 +349,12 @@ def start_session(session_id: str, user_id: str, db: DatabaseService) -> QuizSes
         raise ValueError(f"Can only start sessions in 'waiting' status, current: {session.status}")
 
     # Start at first question
+    now = datetime.now()
     session = db.update_quiz_session(session_id, user_id, {
         "status": SessionStatus.ACTIVE,
-        "started_at": datetime.now(),
-        "current_question_index": 0
+        "started_at": now,
+        "current_question_index": 0,
+        "question_started_at": now  # Track when question 1 started for time limit enforcement
     })
 
     logger.info(f"[SessionStart] Success: session_id={session_id}, room_code={session.room_code}")
@@ -403,6 +405,212 @@ def end_session(session_id: str, user_id: str, db: DatabaseService, reason: str 
     logger.info(f"[SessionEnd] Success: session_id={session_id}, final_status={status}")
 
     return result
+
+
+# ==================== AUTO-ADVANCE WITH SCHEDULER ====================
+
+def schedule_auto_advance(
+    session_id: str,
+    time_limit_seconds: int,
+    cooldown_seconds: int,
+    db: DatabaseService
+) -> str:
+    """
+    Schedule automatic advancement to the next question.
+
+    Uses APScheduler to run auto_advance_question after time_limit + cooldown.
+
+    Args:
+        session_id: Session ID
+        time_limit_seconds: Question time limit (0 if no limit)
+        cooldown_seconds: Delay before advancing (default 10)
+        db: Database service
+
+    Returns:
+        Job ID for cancellation
+
+    Note: Stores job ID in session.config_snapshot for cancellation
+    """
+    from app.core.scheduler import scheduler
+    from datetime import timedelta
+
+    # Calculate total wait time
+    total_wait = (time_limit_seconds or 0) + cooldown_seconds
+
+    logger.info(f"[AutoAdvance] Scheduling auto-advance for session {session_id} in {total_wait}s")
+
+    # Schedule job
+    run_time = datetime.now() + timedelta(seconds=total_wait)
+    job_id = f"auto_advance_{session_id}_{datetime.now().timestamp()}"
+
+    job = scheduler.add_job(
+        func=auto_advance_question,
+        trigger='date',
+        run_date=run_time,
+        args=[session_id],
+        id=job_id,
+        name=f"Auto-advance session {session_id}",
+        replace_existing=False
+    )
+
+    logger.info(f"[AutoAdvance] Scheduled job {job_id} to run at {run_time}")
+
+    return job_id
+
+
+def cancel_auto_advance(session_id: str, db: DatabaseService) -> None:
+    """
+    Cancel scheduled auto-advance for a session.
+
+    Args:
+        session_id: Session ID
+        db: Database service
+
+    Note: Reads job_id from session.config_snapshot['auto_advance_job_id']
+    """
+    from app.core.scheduler import scheduler
+
+    session = db.get_quiz_session_by_id(session_id)
+    if not session:
+        return
+
+    config = session.config_snapshot or {}
+    job_id = config.get('auto_advance_job_id')
+
+    if job_id:
+        try:
+            scheduler.remove_job(job_id)
+            logger.info(f"[AutoAdvance] Cancelled job {job_id} for session {session_id}")
+        except Exception as e:
+            # Job already executed or doesn't exist
+            logger.warning(f"[AutoAdvance] Failed to cancel job {job_id}: {e}")
+
+
+def auto_advance_question(session_id: str):
+    """
+    Background job to automatically advance to the next question.
+
+    This runs in scheduler context with its own DB session.
+
+    Args:
+        session_id: Session ID
+
+    Note: Only advances if session is still active and has more questions
+    """
+    from app.db.database import SessionLocal
+    from app.routers.quiz_websocket_router import connection_manager
+    from app.core.quiz_websocket import build_question_started_message
+    import asyncio
+
+    logger.info(f"[AutoAdvance] Executing auto-advance for session {session_id}")
+
+    db_session = SessionLocal()
+    try:
+        db = DatabaseService(db_session)
+
+        # Get session
+        session = db.get_quiz_session_by_id(session_id)
+        if not session:
+            logger.warning(f"[AutoAdvance] Session not found: {session_id}")
+            return
+
+        # Safety check: only advance if still active
+        if session.status != SessionStatus.ACTIVE:
+            logger.warning(f"[AutoAdvance] Session not active: {session_id}, status={session.status}")
+            return
+
+        # Get quiz and questions
+        quiz = db.get_quiz_by_id(session.quiz_id, session.user_id)
+        questions = db.get_questions_by_quiz_id(session.quiz_id, session.user_id)
+
+        # Check if there are more questions
+        next_index = (session.current_question_index or -1) + 1
+        if next_index >= len(questions):
+            # No more questions, end session automatically
+            logger.info(f"[AutoAdvance] No more questions, ending session {session_id}")
+            end_session(session_id, session.user_id, db, reason="completed")
+
+            # Broadcast session_ended
+            asyncio.run(connection_manager.broadcast_to_room(
+                session_id,
+                {
+                    "type": "session_ended",
+                    "session_id": str(session.id),
+                    "reason": "completed",
+                    "final_status": "completed"
+                }
+            ))
+            return
+
+        # Advance to next question
+        session = db.move_to_next_question(session_id, session.user_id)
+
+        # Broadcast new question
+        current_question = questions[session.current_question_index]
+        asyncio.run(connection_manager.broadcast_to_room(
+            session_id,
+            build_question_started_message(
+                question_id=str(current_question.id),
+                question_text=current_question.question_text,
+                question_type=current_question.question_type,
+                options=current_question.options if current_question.options else [],
+                points=current_question.points,
+                order_index=session.current_question_index,
+                time_limit_seconds=current_question.time_limit_seconds
+            )
+        ))
+
+        # Broadcast updated leaderboard
+        leaderboard_entries = []
+        leaderboard_participants = db.get_leaderboard(session_id, limit=100)
+        for rank, p in enumerate(leaderboard_participants, start=1):
+            display_name = "Unknown"
+            if p.guest_name:
+                display_name = p.guest_name
+            elif p.student_id:
+                try:
+                    student = db.get_student_by_student_id(p.student_id)
+                    display_name = student.name if student else f"Student {p.student_id}"
+                except:
+                    display_name = f"Student {p.student_id}"
+
+            leaderboard_entries.append({
+                "rank": rank,
+                "participant_id": str(p.id),
+                "display_name": display_name,
+                "score": p.score,
+                "correct_answers": p.correct_answers,
+                "total_time_ms": p.total_time_ms,
+                "is_active": p.is_active
+            })
+
+        asyncio.run(connection_manager.broadcast_to_room(
+            session_id,
+            {
+                "type": "leaderboard_update",
+                "leaderboard": leaderboard_entries
+            }
+        ))
+
+        # Schedule next auto-advance if enabled
+        config = session.config_snapshot or {}
+        if config.get("auto_advance_enabled"):
+            job_id = schedule_auto_advance(
+                session_id,
+                current_question.time_limit_seconds or 0,
+                config.get("cooldown_seconds", 10),
+                db
+            )
+            # Update job_id in config
+            config["auto_advance_job_id"] = job_id
+            db.update_quiz_session(session_id, session.user_id, {"config_snapshot": config})
+
+        logger.info(f"[AutoAdvance] Success: session {session_id} advanced to question {session.current_question_index}")
+
+    except Exception as e:
+        logger.error(f"[AutoAdvance] Error in auto-advance: {e}", exc_info=True)
+    finally:
+        db_session.close()
 
 
 # ==================== PARTICIPANT MANAGEMENT ====================
@@ -733,6 +941,20 @@ def submit_answer_with_grading(participant_id: str, question_id: str, answer: Li
     if not question:
         logger.warning(f"[AnswerSubmit] Question not found: {question_id}")
         raise ValueError("Question not found")
+
+    # FIX Issue 1: Enforce time limit - reject late submissions
+    if question.time_limit_seconds is not None and question.time_limit_seconds > 0:
+        # Get session to check when question started
+        session = db.get_quiz_session_by_id(participant.session_id)
+        if session and session.question_started_at:
+            elapsed_seconds = (datetime.now() - session.question_started_at).total_seconds()
+            if elapsed_seconds > question.time_limit_seconds:
+                logger.warning(
+                    f"[AnswerSubmit] Time limit exceeded: "
+                    f"participant={participant_id}, question={question_id}, "
+                    f"elapsed={elapsed_seconds:.1f}s, limit={question.time_limit_seconds}s"
+                )
+                raise ValueError("Time limit exceeded for this question")
 
     logger.info(f"[AnswerSubmit] Grading answer: type={question.question_type}, time={time_taken_ms}ms")
 

@@ -28,7 +28,10 @@ import {
   Divider,
   IconButton,
   Tooltip,
-  Fade
+  Fade,
+  Switch,
+  FormControlLabel,
+  TextField
 } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
@@ -139,6 +142,10 @@ const QuizHost = () => {
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [answersReceived, setAnswersReceived] = useState(0);
   const [wsConnected, setWsConnected] = useState(false);
+
+  // FIX Issue 2: Auto-advance state
+  const [autoAdvanceEnabled, setAutoAdvanceEnabled] = useState(false);
+  const [cooldownSeconds, setCooldownSeconds] = useState(10);
 
   // Dialogs
   const [endDialog, setEndDialog] = useState(false);
@@ -298,6 +305,13 @@ const QuizHost = () => {
         }));
         break;
 
+      case 'auto_advance_updated':
+        // FIX Issue 2: Auto-advance setting changed
+        setAutoAdvanceEnabled(message.enabled);
+        setCooldownSeconds(message.cooldown_seconds);
+        console.log('[QuizHost] Auto-advance updated:', message.enabled, message.cooldown_seconds);
+        break;
+
       case 'ping':
         // Respond to heartbeat
         if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
@@ -307,6 +321,17 @@ const QuizHost = () => {
 
       default:
         console.log('Unknown message type:', message.type);
+    }
+  };
+
+  // FIX Issue 2: Handle auto-advance toggle
+  const handleToggleAutoAdvance = async (enabled) => {
+    try {
+      await quizService.toggleAutoAdvance(sessionId, enabled, cooldownSeconds);
+      setAutoAdvanceEnabled(enabled);
+    } catch (err) {
+      console.error("Failed to toggle auto-advance:", err);
+      setError(err.message || "Failed to toggle auto-advance.");
     }
   };
 
@@ -570,6 +595,42 @@ const QuizHost = () => {
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>Session Controls</Typography>
+
+              {/* FIX Issue 2: Auto-Advance Controls */}
+              {session?.status === 'active' && (
+                <Box sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 1, backgroundColor: '#f9f9f9' }}>
+                  <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                    Auto-Advance Settings
+                  </Typography>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={autoAdvanceEnabled}
+                        onChange={(e) => handleToggleAutoAdvance(e.target.checked)}
+                        color="primary"
+                      />
+                    }
+                    label="Enable Auto-Advance"
+                  />
+                  <TextField
+                    label="Cooldown (seconds)"
+                    type="number"
+                    value={cooldownSeconds}
+                    onChange={(e) => {
+                      const val = Math.max(1, parseInt(e.target.value) || 10);
+                      setCooldownSeconds(val);
+                      // Update backend if auto-advance is enabled
+                      if (autoAdvanceEnabled) {
+                        handleToggleAutoAdvance(true);
+                      }
+                    }}
+                    disabled={!autoAdvanceEnabled}
+                    size="small"
+                    sx={{ ml: 2, width: 150 }}
+                    inputProps={{ min: 1 }}
+                  />
+                </Box>
+              )}
 
               {session?.status === 'waiting' && (
                 <Button

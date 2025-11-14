@@ -249,6 +249,29 @@ const quizService = {
   },
 
   /**
+   * Toggle auto-advance for a session (FIX Issue 2)
+   */
+  toggleAutoAdvance: async (sessionId, enabled, cooldownSeconds = 10) => {
+    try {
+      const response = await apiClient.post(
+        `/api/quiz-sessions/${sessionId}/toggle-auto-advance`,
+        null,
+        {
+          params: {
+            enabled,
+            cooldown_seconds: cooldownSeconds
+          }
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error toggling auto-advance for session ${sessionId}:`, error);
+      const errorMessage = error.response?.data?.detail || "Failed to toggle auto-advance.";
+      throw new Error(errorMessage);
+    }
+  },
+
+  /**
    * Get all sessions for the current user
    */
   getAllSessions: async () => {

@@ -205,24 +205,34 @@ const WaitingRoom = ({ session, participantName }) => {
 /**
  * Question Display Component
  */
-const QuestionDisplay = ({ question, onAnswer, timeRemaining }) => {
+const QuestionDisplay = ({ question, onAnswer, timeRemaining, cooldownRemaining, autoAdvanceEnabled }) => {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [timeExpired, setTimeExpired] = useState(false);
 
   // FIX: Reset state when question changes (allows answering new questions)
   useEffect(() => {
     setSelectedAnswer(null);
     setIsSubmitted(false);
+    setTimeExpired(false);
   }, [question.id]); // Reset when question ID changes
 
+  // FIX Issue 1: Detect when time expires
+  useEffect(() => {
+    if (timeRemaining <= 0 && !isSubmitted) {
+      setTimeExpired(true);
+      setSelectedAnswer(null); // Clear any selection
+    }
+  }, [timeRemaining, isSubmitted]);
+
   const handleSelect = (answerIndex) => {
-    if (!isSubmitted) {
+    if (!isSubmitted && !timeExpired) {
       setSelectedAnswer(answerIndex);
     }
   };
 
   const handleSubmit = () => {
-    if (selectedAnswer !== null && !isSubmitted) {
+    if (selectedAnswer !== null && !isSubmitted && !timeExpired) {
       setIsSubmitted(true);
       onAnswer(selectedAnswer);
     }
@@ -278,7 +288,7 @@ const QuestionDisplay = ({ question, onAnswer, timeRemaining }) => {
                     variant={selectedAnswer === index ? 'contained' : 'outlined'}
                     size="large"
                     onClick={() => handleSelect(index)}
-                    disabled={isSubmitted}
+                    disabled={isSubmitted || timeExpired}
                     sx={{
                       py: 3,
                       fontSize: '1.2rem',
@@ -299,17 +309,46 @@ const QuestionDisplay = ({ question, onAnswer, timeRemaining }) => {
           </Grid>
 
           {/* Submit Button */}
-          {!isSubmitted && selectedAnswer !== null && (
+          {!isSubmitted && !timeExpired && selectedAnswer !== null && (
             <Fade in>
               <Box sx={{ textAlign: 'center', mt: 4 }}>
                 <Button
                   variant="contained"
                   size="large"
                   onClick={handleSubmit}
+                  disabled={timeExpired}
                   sx={{ px: 8, py: 2, fontSize: '1.2rem' }}
                 >
                   Submit Answer
                 </Button>
+              </Box>
+            </Fade>
+          )}
+
+          {/* FIX Issue 1: Show red alert when time expires */}
+          {timeExpired && !isSubmitted && !cooldownRemaining && (
+            <Fade in>
+              <Alert severity="error" sx={{ mt: 4 }}>
+                ⏰ You missed this question - time expired!
+              </Alert>
+            </Fade>
+          )}
+
+          {/* FIX Issue 2: Show cooldown countdown when auto-advance is enabled */}
+          {cooldownRemaining > 0 && autoAdvanceEnabled && (
+            <Fade in>
+              <Box sx={{ textAlign: 'center', mt: 4 }}>
+                <Alert severity="info" icon={false} sx={{ p: 3 }}>
+                  <Typography variant="h5" sx={{ mb: 1 }}>
+                    Get Ready!
+                  </Typography>
+                  <Typography variant="h2" sx={{ fontWeight: 700, color: 'primary.main', my: 2 }}>
+                    {cooldownRemaining}
+                  </Typography>
+                  <Typography variant="body1">
+                    Next question starting soon...
+                  </Typography>
+                </Alert>
               </Box>
             </Fade>
           )}
@@ -435,6 +474,11 @@ const QuizParticipant = () => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [timeRemaining, setTimeRemaining] = useState(30);
   const [error, setError] = useState(null);
+
+  // FIX Issue 2: Auto-advance state
+  const [autoAdvanceEnabled, setAutoAdvanceEnabled] = useState(false);
+  const [cooldownSeconds, setCooldownSeconds] = useState(10);
+  const [cooldownRemaining, setCooldownRemaining] = useState(0);
 
   // FIX #3: Cleanup WebSocket and timer on unmount to prevent memory leaks
   useEffect(() => {
@@ -578,6 +622,13 @@ const QuizParticipant = () => {
         setPhase('finished');
         break;
 
+      case 'auto_advance_updated':
+        // FIX Issue 2: Auto-advance setting changed
+        console.log('[QuizParticipant] Auto-advance updated:', message.enabled, message.cooldown_seconds);
+        setAutoAdvanceEnabled(message.enabled);
+        setCooldownSeconds(message.cooldown_seconds);
+        break;
+
       case 'ping':
         console.log('[QuizParticipant] Heartbeat ping received, sending pong');
         // Respond to heartbeat
@@ -599,6 +650,9 @@ const QuizParticipant = () => {
       clearInterval(timerRef.current);
     }
 
+    // Reset cooldown
+    setCooldownRemaining(0);
+
     let remaining = duration;
     setTimeRemaining(remaining);
 
@@ -612,6 +666,31 @@ const QuizParticipant = () => {
       }
     }, 1000);
   };
+
+  // FIX Issue 2: Start cooldown when time expires and auto-advance is enabled
+  useEffect(() => {
+    if (timeRemaining === 0 && autoAdvanceEnabled && phase === 'question') {
+      console.log('[QuizParticipant] Starting cooldown countdown:', cooldownSeconds, 'seconds');
+      let cooldownLeft = cooldownSeconds;
+      setCooldownRemaining(cooldownLeft);
+
+      const cooldownInterval = setInterval(() => {
+        cooldownLeft -= 1;
+        setCooldownRemaining(cooldownLeft);
+
+        if (cooldownLeft <= 0) {
+          console.log('[QuizParticipant] Cooldown finished');
+          clearInterval(cooldownInterval);
+          setCooldownRemaining(0);
+        }
+      }, 1000);
+
+      // Cleanup on unmount or when phase changes
+      return () => {
+        clearInterval(cooldownInterval);
+      };
+    }
+  }, [timeRemaining, autoAdvanceEnabled, cooldownSeconds, phase]);
 
   const handleAnswer = async (answerIndex) => {
     console.log('[QuizParticipant] Submitting answer:', {
@@ -662,6 +741,8 @@ const QuizParticipant = () => {
         question={currentQuestion}
         onAnswer={handleAnswer}
         timeRemaining={timeRemaining}
+        cooldownRemaining={cooldownRemaining}
+        autoAdvanceEnabled={autoAdvanceEnabled}
       />
     );
   }

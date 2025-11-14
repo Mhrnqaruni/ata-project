@@ -198,6 +198,8 @@ class QuizSessionRepositorySQL:
 
         Note: Service layer should validate question count before calling
         """
+        from datetime import datetime
+
         session = self.get_session_by_id(session_id, user_id)
         if session:
             current_index = session.current_question_index
@@ -205,6 +207,10 @@ class QuizSessionRepositorySQL:
                 session.current_question_index = 0
             else:
                 session.current_question_index = current_index + 1
+
+            # Track when this question started for time limit enforcement
+            session.question_started_at = datetime.now()
+
             self.db.commit()
             self.db.refresh(session)
         return session

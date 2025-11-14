@@ -369,6 +369,9 @@ async def next_question(
     questions = db.get_questions_by_quiz_id(session.quiz_id, current_user.id)
     participants = db.get_participants_by_session(session_id)
 
+    # FIX Issue 2: Cancel any pending auto-advance (manual advance takes precedence)
+    quiz_service.cancel_auto_advance(session_id, db)
+
     # FIX: Validate BEFORE incrementing the index
     next_index = (session.current_question_index or -1) + 1
     if next_index >= len(questions):
@@ -429,11 +432,125 @@ async def next_question(
         }
     )
 
+    # FIX Issue 2: Reschedule auto-advance if enabled
+    config = session.config_snapshot or {}
+    if config.get("auto_advance_enabled"):
+        job_id = quiz_service.schedule_auto_advance(
+            session_id,
+            current_question.time_limit_seconds or 0,
+            config.get("cooldown_seconds", 10),
+            db
+        )
+        # Update job_id in config
+        config["auto_advance_job_id"] = job_id
+        from sqlalchemy.orm.attributes import flag_modified
+        session.config_snapshot = config
+        flag_modified(session, "config_snapshot")
+        db.db.commit()
+
     return {
         **session.__dict__,
         "quiz_title": quiz.title if quiz else "Unknown",
         "participant_count": len(participants),
         "questions": questions
+    }
+
+
+@router.post("/{session_id}/toggle-auto-advance", summary="Toggle Auto-Advance")
+async def toggle_auto_advance(
+    session_id: str,
+    enabled: bool,
+    cooldown_seconds: int = 10,
+    db: DatabaseService = Depends(get_db_service),
+    current_user: UserModel = Depends(get_current_active_user)
+):
+    """
+    Enable or disable auto-advance for a session.
+
+    Path Parameters:
+    - session_id: Session ID
+
+    Query Parameters:
+    - enabled: Enable/disable auto-advance
+    - cooldown_seconds: Cooldown between questions (default 10)
+
+    Returns:
+    - Success status
+
+    Raises:
+    - 404: Session not found or access denied
+    """
+    # Verify ownership
+    session = db.get_quiz_session_by_id(session_id, current_user.id)
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Session with ID {session_id} not found or access denied"
+        )
+
+    # Update config snapshot
+    config = session.config_snapshot or {}
+    config["auto_advance_enabled"] = enabled
+    config["cooldown_seconds"] = cooldown_seconds
+
+    # Use SQLAlchemy flag_modified for JSONB update
+    from sqlalchemy.orm.attributes import flag_modified
+    session.config_snapshot = config
+    flag_modified(session, "config_snapshot")
+    db.db.commit()
+
+    if enabled:
+        # Start auto-advance for current question
+        questions = db.get_questions_by_quiz_id(session.quiz_id, current_user.id)
+        if session.current_question_index is not None and session.current_question_index < len(questions):
+            current_question = questions[session.current_question_index]
+
+            # Calculate remaining time for current question
+            from datetime import datetime
+            if session.question_started_at:
+                elapsed = (datetime.now() - session.question_started_at).total_seconds()
+                remaining_time = max(0, (current_question.time_limit_seconds or 0) - elapsed)
+            else:
+                remaining_time = current_question.time_limit_seconds or 0
+
+            # Schedule auto-advance
+            job_id = quiz_service.schedule_auto_advance(
+                session_id,
+                int(remaining_time),
+                cooldown_seconds,
+                db
+            )
+
+            # Store job_id in config
+            config["auto_advance_job_id"] = job_id
+            session.config_snapshot = config
+            flag_modified(session, "config_snapshot")
+            db.db.commit()
+    else:
+        # Cancel pending auto-advance
+        quiz_service.cancel_auto_advance(session_id, db)
+
+        # Clear job_id from config
+        if "auto_advance_job_id" in config:
+            del config["auto_advance_job_id"]
+            session.config_snapshot = config
+            flag_modified(session, "config_snapshot")
+            db.db.commit()
+
+    # Broadcast setting change to all clients
+    await connection_manager.broadcast_to_room(
+        session_id,
+        {
+            "type": "auto_advance_updated",
+            "enabled": enabled,
+            "cooldown_seconds": cooldown_seconds
+        }
+    )
+
+    return {
+        "success": True,
+        "auto_advance_enabled": enabled,
+        "cooldown_seconds": cooldown_seconds
     }
 
 

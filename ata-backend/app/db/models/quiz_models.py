@@ -238,6 +238,9 @@ class QuizSession(Base):
     # Auto-ended due to timeout (for analytics)
     auto_ended_at = Column(DateTime(timezone=True), nullable=True)
 
+    # When the current question was started (for time limit enforcement)
+    question_started_at = Column(DateTime(timezone=True), nullable=True)
+
     # ===== TIMESTAMPS =====
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
