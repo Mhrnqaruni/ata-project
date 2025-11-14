@@ -291,6 +291,11 @@ const QuizHost = () => {
         // New question started
         setCurrentQuestion(message.question);
         setAnswersReceived(0);
+        // FIX: Update session's current_question_index so counter displays correctly
+        setSession(prev => ({
+          ...prev,
+          current_question_index: message.question.order_index
+        }));
         break;
 
       case 'ping':
