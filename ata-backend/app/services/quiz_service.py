@@ -965,19 +965,15 @@ def get_question_analytics_single(question_id: str, session_id: str, db: Databas
     Returns:
         Dictionary matching QuestionAnalytics schema
     """
-    from sqlalchemy import func
-    from ..db.models.quiz_models import QuizResponse, QuizQuestion
-
     # Get question details
     question = db.get_question_by_id(question_id)
     if not question:
         raise ValueError("Question not found")
 
-    # Get all responses for this question in this session
-    responses = db.db_session.query(QuizResponse).filter(
-        QuizResponse.question_id == question_id,
-        QuizResponse.session_id == session_id
-    ).all()
+    # FIX: Get all responses for this session, then filter by question in Python
+    # (DatabaseService doesn't expose db_session, so we use available repository methods)
+    all_session_responses = db.get_responses_by_session(session_id)
+    responses = [r for r in all_session_responses if r.question_id == question_id]
 
     total_responses = len(responses)
 

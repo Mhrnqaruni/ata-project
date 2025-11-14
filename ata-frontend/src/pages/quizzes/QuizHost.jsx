@@ -539,7 +539,7 @@ const QuizHost = () => {
                   : '-'}
               </Typography>
               <Typography color="text.secondary">
-                of {session?.questions?.length || quiz?.question_count || 0}
+                of {session?.questions?.length || 0}
               </Typography>
 
               {session?.status === 'active' && (
@@ -588,7 +588,7 @@ const QuizHost = () => {
                     onClick={handleNextQuestion}
                     disabled={
                       session.current_question_index === null ||
-                      session.current_question_index >= (quiz?.question_count || 0) - 1
+                      session.current_question_index >= (session?.questions?.length || 0) - 1
                     }
                     sx={{ mb: 1 }}
                   >
