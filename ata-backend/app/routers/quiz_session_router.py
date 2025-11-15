@@ -229,7 +229,22 @@ async def start_session(
 
             # FIX: Schedule auto-advance if enabled (from settings configured before quiz start)
             config = session.config_snapshot or {}
+
+            # DEBUG: Log config to see what's stored
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(f"[StartSession] ========== AUTO-ADVANCE CONFIG CHECK ==========")
+            logger.info(f"[StartSession] Session ID: {session_id}")
+            logger.info(f"[StartSession] Config snapshot type: {type(session.config_snapshot)}")
+            logger.info(f"[StartSession] Config snapshot value: {session.config_snapshot}")
+            logger.info(f"[StartSession] Config dict: {config}")
+            logger.info(f"[StartSession] auto_advance_enabled: {config.get('auto_advance_enabled')}")
+            logger.info(f"[StartSession] cooldown_seconds: {config.get('cooldown_seconds')}")
+            logger.info(f"[StartSession] Will schedule: {config.get('auto_advance_enabled') == True}")
+            logger.info(f"[StartSession] ===============================================")
+
             if config.get("auto_advance_enabled"):
+                logger.info(f"[StartSession] ✅ Auto-advance is ENABLED, scheduling job...")
                 job_id = quiz_service.schedule_auto_advance(
                     session_id,
                     first_question.time_limit_seconds or 0,
@@ -239,6 +254,9 @@ async def start_session(
                 # Store job_id in config for cancellation
                 config["auto_advance_job_id"] = job_id
                 db.update_quiz_session(session_id, current_user.id, {"config_snapshot": config})
+                logger.info(f"[StartSession] ✅ Job scheduled with ID: {job_id}")
+            else:
+                logger.info(f"[StartSession] ❌ Auto-advance is DISABLED, skipping scheduling")
 
         return {
             **session.__dict__,
