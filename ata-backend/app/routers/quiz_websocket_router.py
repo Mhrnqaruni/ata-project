@@ -339,6 +339,15 @@ async def _send_current_state(
             }
         })
 
+        # FIX: Send auto-advance configuration to newly connected clients
+        config = session.config_snapshot or {}
+        if config.get("auto_advance_enabled"):
+            await connection_manager.send_personal_message(websocket, {
+                "type": "auto_advance_updated",
+                "enabled": True,
+                "cooldown_seconds": config.get("cooldown_seconds", 10)
+            })
+
         # Send current leaderboard
         await _send_leaderboard(websocket, session_id, db)
 

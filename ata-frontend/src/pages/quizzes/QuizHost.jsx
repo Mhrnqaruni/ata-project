@@ -335,6 +335,15 @@ const QuizHost = () => {
         console.log('[QuizHost] Auto-advance updated:', message.enabled, message.cooldown_seconds);
         break;
 
+      case 'session_ended':
+        // FIX Issue 4: Handle session ended (from auto-advance after last question)
+        console.log('[QuizHost] Session ended via websocket:', message.reason);
+        setSession(prev => ({
+          ...prev,
+          status: message.final_status || 'completed'
+        }));
+        break;
+
       case 'ping':
         // Respond to heartbeat
         if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
@@ -348,9 +357,10 @@ const QuizHost = () => {
   };
 
   // FIX Issue 2: Handle auto-advance toggle
-  const handleToggleAutoAdvance = async (enabled) => {
+  const handleToggleAutoAdvance = async (enabled, cooldownOverride = null) => {
     try {
-      await quizService.toggleAutoAdvance(sessionId, enabled, cooldownSeconds);
+      const cooldownToUse = cooldownOverride !== null ? cooldownOverride : cooldownSeconds;
+      await quizService.toggleAutoAdvance(sessionId, enabled, cooldownToUse);
       setAutoAdvanceEnabled(enabled);
     } catch (err) {
       console.error("Failed to toggle auto-advance:", err);
@@ -753,9 +763,9 @@ const QuizHost = () => {
                     onChange={(e) => {
                       const val = Math.max(1, parseInt(e.target.value) || 10);
                       setCooldownSeconds(val);
-                      // Update backend if auto-advance is enabled
+                      // FIX: Pass new value directly to avoid React state timing issue
                       if (autoAdvanceEnabled) {
-                        handleToggleAutoAdvance(true);
+                        handleToggleAutoAdvance(true, val);
                       }
                     }}
                     disabled={!autoAdvanceEnabled}
