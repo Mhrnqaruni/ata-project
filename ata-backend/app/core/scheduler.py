@@ -7,7 +7,7 @@ Uses APScheduler to run cleanup tasks automatically.
 
 import os
 import pytz
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from sqlalchemy.orm import Session
 
@@ -15,8 +15,8 @@ from app.db.database import SessionLocal
 from app.services.file_cleanup_service import get_cleanup_service
 
 
-# Global scheduler instance - Using AsyncIOScheduler for FastAPI compatibility
-scheduler = AsyncIOScheduler()
+# Global scheduler instance
+scheduler = BackgroundScheduler()
 
 
 def cleanup_old_files_task():
@@ -50,12 +50,9 @@ def cleanup_old_files_task():
         db.close()
 
 
-async def start_scheduler():
+def start_scheduler():
     """
     Start the background scheduler with all scheduled tasks.
-
-    IMPORTANT: This is async to ensure AsyncIOScheduler starts in
-    FastAPI's event loop, not its own separate event loop.
     """
     # Get schedule from environment variable, default to every 6 hours
     # Format: "0 */6 * * *" means "run at minute 0 of every 6th hour"
@@ -70,9 +67,9 @@ async def start_scheduler():
         replace_existing=True
     )
 
-    # Start the scheduler in the current (FastAPI's) event loop
+    # Start the scheduler
     scheduler.start()
-    print(f"[SCHEDULER] Scheduler started in FastAPI's event loop: File cleanup will run on schedule: {cleanup_schedule}")
+    print(f"[SCHEDULER] Scheduler started: File cleanup will run on schedule: {cleanup_schedule}")
 
 
 def stop_scheduler():
