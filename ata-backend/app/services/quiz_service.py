@@ -486,11 +486,11 @@ def cancel_auto_advance(session_id: str, db: DatabaseService) -> None:
             logger.warning(f"[AutoAdvance] Failed to cancel job {job_id}: {e}")
 
 
-def auto_advance_question(session_id: str):
+async def auto_advance_question(session_id: str):
     """
     Background job to automatically advance to the next question.
 
-    This runs in scheduler context with its own DB session.
+    This runs in AsyncIOScheduler context with FastAPI's event loop.
 
     Args:
         session_id: Session ID
@@ -500,7 +500,6 @@ def auto_advance_question(session_id: str):
     from app.db.database import SessionLocal
     from app.routers.quiz_websocket_router import connection_manager
     from app.core.quiz_websocket import build_question_started_message
-    import asyncio
 
     logger.info(f"[AutoAdvance] Executing auto-advance for session {session_id}")
 
@@ -531,7 +530,7 @@ def auto_advance_question(session_id: str):
             end_session(session_id, session.user_id, db, reason="completed")
 
             # Broadcast session_ended
-            asyncio.run(connection_manager.broadcast_to_room(
+            await connection_manager.broadcast_to_room(
                 session_id,
                 {
                     "type": "session_ended",
@@ -539,7 +538,7 @@ def auto_advance_question(session_id: str):
                     "reason": "completed",
                     "final_status": "completed"
                 }
-            ))
+            )
             return
 
         # FIX Issue 3: Create "missed" responses for participants who didn't answer the CURRENT question
@@ -558,7 +557,7 @@ def auto_advance_question(session_id: str):
 
         # Broadcast new question
         current_question = questions[session.current_question_index]
-        asyncio.run(connection_manager.broadcast_to_room(
+        await connection_manager.broadcast_to_room(
             session_id,
             build_question_started_message(
                 question_id=str(current_question.id),
@@ -569,7 +568,7 @@ def auto_advance_question(session_id: str):
                 order_index=session.current_question_index,
                 time_limit_seconds=current_question.time_limit_seconds
             )
-        ))
+        )
 
         # Broadcast updated leaderboard
         leaderboard_entries = []
@@ -595,13 +594,13 @@ def auto_advance_question(session_id: str):
                 "is_active": p.is_active
             })
 
-        asyncio.run(connection_manager.broadcast_to_room(
+        await connection_manager.broadcast_to_room(
             session_id,
             {
                 "type": "leaderboard_update",
                 "leaderboard": leaderboard_entries
             }
-        ))
+        )
 
         # Schedule next auto-advance if enabled
         config = session.config_snapshot or {}

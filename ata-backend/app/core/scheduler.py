@@ -7,7 +7,7 @@ Uses APScheduler to run cleanup tasks automatically.
 
 import os
 import pytz
-from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from sqlalchemy.orm import Session
 
@@ -15,8 +15,8 @@ from app.db.database import SessionLocal
 from app.services.file_cleanup_service import get_cleanup_service
 
 
-# Global scheduler instance
-scheduler = BackgroundScheduler()
+# Global scheduler instance - Using AsyncIOScheduler for FastAPI compatibility
+scheduler = AsyncIOScheduler()
 
 
 def cleanup_old_files_task():
