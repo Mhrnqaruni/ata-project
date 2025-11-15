@@ -439,8 +439,9 @@ def schedule_auto_advance(
 
     logger.info(f"[AutoAdvance] Scheduling auto-advance for session {session_id} in {total_wait}s")
 
-    # Schedule job
-    run_time = datetime.now() + timedelta(seconds=total_wait)
+    # Schedule job with timezone-aware datetime (UTC)
+    # IMPORTANT: Must use timezone-aware datetime to match AsyncIOScheduler's internal clock
+    run_time = datetime.now(timezone.utc) + timedelta(seconds=total_wait)
     job_id = f"auto_advance_{session_id}_{datetime.now().timestamp()}"
 
     job = scheduler.add_job(
@@ -453,7 +454,8 @@ def schedule_auto_advance(
         replace_existing=False
     )
 
-    logger.info(f"[AutoAdvance] Scheduled job {job_id} to run at {run_time}")
+    logger.info(f"[AutoAdvance] Scheduled job {job_id} to run at {run_time} (UTC timezone-aware)")
+    logger.info(f"[AutoAdvance] Scheduler timezone: {scheduler.timezone}, Job will execute in {total_wait} seconds")
 
     return job_id
 
