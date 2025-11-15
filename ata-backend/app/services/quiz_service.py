@@ -584,6 +584,18 @@ def auto_advance_question(session_id: str):
                 db=db
             )
 
+        # FIX BUG #2: Broadcast question_ended to sync all clients before cooldown
+        config = session.config_snapshot or {}
+        logger.info(f"[AutoAdvance] Broadcasting question_ended before advancing...")
+        asyncio.run(connection_manager.broadcast_to_room(
+            session_id,
+            {
+                "type": "question_ended",
+                "question_index": session.current_question_index,
+                "cooldown_seconds": config.get("cooldown_seconds", 10)
+            }
+        ))
+
         # Advance to next question
         session = db.move_to_next_question(session_id, session.user_id)
 
@@ -634,13 +646,26 @@ def auto_advance_question(session_id: str):
             }
         ))
 
-        # Schedule next auto-advance if enabled
+        # FIX BUG #1: Broadcast cooldown_started so all clients can show countdown
         config = session.config_snapshot or {}
         if config.get("auto_advance_enabled"):
+            cooldown_secs = config.get("cooldown_seconds", 10)
+            logger.info(f"[AutoAdvance] Broadcasting cooldown_started: {cooldown_secs}s")
+            asyncio.run(connection_manager.broadcast_to_room(
+                session_id,
+                {
+                    "type": "cooldown_started",
+                    "cooldown_seconds": cooldown_secs,
+                    "next_question_index": session.current_question_index + 1 if session.current_question_index + 1 < len(questions) else None,
+                    "total_questions": len(questions)
+                }
+            ))
+
+            # Schedule next auto-advance
             job_id = schedule_auto_advance(
                 session_id,
                 current_question.time_limit_seconds or 0,
-                config.get("cooldown_seconds", 10),
+                cooldown_secs,
                 db
             )
             # Update job_id in config

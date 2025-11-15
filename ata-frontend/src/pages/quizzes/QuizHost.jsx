@@ -335,13 +335,39 @@ const QuizHost = () => {
         console.log('[QuizHost] Auto-advance updated:', message.enabled, message.cooldown_seconds);
         break;
 
+      case 'question_ended':
+        // FIX BUG #2: Question ended, cooldown starting
+        console.log('[QuizHost] Question ended, cooldown starting:', message.cooldown_seconds);
+        setTimeRemaining(0);
+        setCooldownRemaining(message.cooldown_seconds);
+        break;
+
+      case 'cooldown_started':
+        // FIX BUG #1: Cooldown started from backend
+        console.log('[QuizHost] Cooldown started:', message.cooldown_seconds);
+        setCooldownSeconds(message.cooldown_seconds);
+        setCooldownRemaining(message.cooldown_seconds);
+        break;
+
       case 'session_ended':
-        // FIX Issue 4: Handle session ended (from auto-advance after last question)
+        // FIX BUG #3: Handle session ended (from auto-advance after last question)
         console.log('[QuizHost] Session ended via websocket:', message.reason);
         setSession(prev => ({
           ...prev,
-          status: message.final_status || 'completed'
+          status: message.final_status || 'completed',
+          ended_at: new Date().toISOString()
         }));
+
+        // Clear any pending timers
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+        }
+
+        // Navigate to analytics after 2 seconds
+        setTimeout(() => {
+          console.log('[QuizHost] Navigating to analytics...');
+          navigate(`/quizzes/${session.quiz_id}/sessions/${sessionId}/analytics`);
+        }, 2000);
         break;
 
       case 'ping':

@@ -438,20 +438,35 @@ const QuestionDisplay = ({ question, onAnswer, timeRemaining, cooldownRemaining,
             </Fade>
           )}
 
-          {/* FIX Issue 1: Show red alert when time expires (only if no cooldown) */}
-          {timeExpired && !isSubmitted && !cooldownRemaining && !autoAdvanceEnabled && (
+          {/* FIX BUG #1: Show cooldown timer for ALL students (even those who submitted) */}
+          {cooldownRemaining > 0 && (
             <Fade in>
-              <Alert severity="error" sx={{ mt: 4 }}>
-                ⏰ You missed this question - time expired!
+              <Alert severity="info" sx={{ mt: 4 }}>
+                <Typography variant="h6">
+                  {isSubmitted ? 'Answer submitted!' : 'Time expired!'}
+                </Typography>
+                <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main', mt: 1 }}>
+                  Next question in {cooldownRemaining}s
+                </Typography>
               </Alert>
             </Fade>
           )}
 
-          {isSubmitted && (
+          {/* Show success message when submitted (only if no cooldown yet) */}
+          {isSubmitted && cooldownRemaining === 0 && (
             <Fade in>
               <Alert severity="success" sx={{ mt: 4 }}>
                 <Typography variant="h6">Answer submitted!</Typography>
                 <Typography>Waiting for other participants...</Typography>
+              </Alert>
+            </Fade>
+          )}
+
+          {/* Show missed message when time expired (only if no cooldown and not submitted) */}
+          {timeExpired && !isSubmitted && cooldownRemaining === 0 && !autoAdvanceEnabled && (
+            <Fade in>
+              <Alert severity="error" sx={{ mt: 4 }}>
+                ⏰ You missed this question - time expired!
               </Alert>
             </Fade>
           )}
@@ -721,6 +736,20 @@ const QuizParticipant = () => {
         console.log('[QuizParticipant] Auto-advance updated:', message.enabled, message.cooldown_seconds);
         setAutoAdvanceEnabled(message.enabled);
         setCooldownSeconds(message.cooldown_seconds);
+        break;
+
+      case 'question_ended':
+        // FIX BUG #2: Question ended, cooldown starting
+        console.log('[QuizParticipant] Question ended, cooldown starting:', message.cooldown_seconds);
+        setTimeRemaining(0);
+        setCooldownRemaining(message.cooldown_seconds);
+        break;
+
+      case 'cooldown_started':
+        // FIX BUG #1: Cooldown started from backend (ALL students see this)
+        console.log('[QuizParticipant] Cooldown started:', message.cooldown_seconds);
+        setCooldownSeconds(message.cooldown_seconds);
+        setCooldownRemaining(message.cooldown_seconds);
         break;
 
       case 'ping':

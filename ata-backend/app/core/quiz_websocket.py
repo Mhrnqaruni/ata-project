@@ -59,6 +59,7 @@ class MessageType:
     QUESTION_STARTED = "question_started"
     QUESTION_ENDED = "question_ended"
     NEXT_QUESTION = "next_question"
+    COOLDOWN_STARTED = "cooldown_started"  # FIX: New message type for cooldown
 
     # Participant events
     PARTICIPANT_JOINED = "participant_joined"
