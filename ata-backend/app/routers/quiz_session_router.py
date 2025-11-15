@@ -278,6 +278,19 @@ async def end_session(
     - 422: Session already ended
     """
     try:
+        # FIX Issue 3: Create "missed" responses for the current question before ending session
+        session = db.get_quiz_session_by_id(session_id, current_user.id)
+        if session and session.current_question_index is not None and session.question_started_at:
+            questions = db.get_questions_by_quiz_id(session.quiz_id, current_user.id)
+            if session.current_question_index < len(questions):
+                current_question = questions[session.current_question_index]
+                quiz_service.create_missed_responses_for_question(
+                    session_id=session_id,
+                    question_id=current_question.id,
+                    question_started_at=session.question_started_at,
+                    db=db
+                )
+
         reason = "completed" if not end_data.reason else end_data.reason
         session = quiz_service.end_session(
             session_id=session_id,
@@ -391,6 +404,17 @@ async def next_question(
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="No more questions remaining"
+        )
+
+    # FIX Issue 3: Create "missed" responses for participants who didn't answer the CURRENT question
+    # (before moving to next question)
+    if session.current_question_index is not None and session.question_started_at:
+        previous_question = questions[session.current_question_index]
+        quiz_service.create_missed_responses_for_question(
+            session_id=session_id,
+            question_id=previous_question.id,
+            question_started_at=session.question_started_at,
+            db=db
         )
 
     # Now increment the index

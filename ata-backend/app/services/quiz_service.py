@@ -542,6 +542,17 @@ def auto_advance_question(session_id: str):
             ))
             return
 
+        # FIX Issue 3: Create "missed" responses for participants who didn't answer the CURRENT question
+        # (before auto-advancing to next question)
+        if session.current_question_index is not None and session.question_started_at:
+            current_question = questions[session.current_question_index]
+            create_missed_responses_for_question(
+                session_id=session_id,
+                question_id=current_question.id,
+                question_started_at=session.question_started_at,
+                db=db
+            )
+
         # Advance to next question
         session = db.move_to_next_question(session_id, session.user_id)
 
@@ -992,6 +1003,91 @@ def submit_answer_with_grading(participant_id: str, question_id: str, answer: Li
     }
 
     return result
+
+
+def create_missed_responses_for_question(
+    session_id: str,
+    question_id: str,
+    question_started_at: Optional[datetime],
+    db: DatabaseService
+) -> int:
+    """
+    Create 'missed' response entries for participants who didn't answer a question.
+
+    This is called when:
+    - Teacher clicks "Next Question"
+    - Auto-advance triggers
+    - Session ends
+
+    A "missed" response has:
+    - answer = [] (empty array)
+    - is_correct = None (same as polls)
+    - points_earned = 0
+
+    This ensures analytics correctly show:
+    - Total questions the student saw
+    - Questions answered vs. missed
+    - Accurate attendance metrics
+
+    Args:
+        session_id: Session ID
+        question_id: Question ID that just ended
+        question_started_at: When question started (for time calculation)
+        db: Database service
+
+    Returns:
+        Number of missed responses created
+    """
+    logger.info(f"[MissedResponses] Creating missed entries for question {question_id} in session {session_id}")
+
+    # Get all active participants in this session
+    participants = db.get_participants_by_session(session_id, active_only=True)
+
+    if not participants:
+        logger.info(f"[MissedResponses] No active participants in session {session_id}")
+        return 0
+
+    # Get existing responses for this question in this session
+    all_session_responses = db.get_responses_by_session(session_id)
+    participant_ids_who_answered = {
+        r.participant_id for r in all_session_responses if r.question_id == question_id
+    }
+
+    # Find participants who didn't answer
+    participants_who_missed = [
+        p for p in participants if p.id not in participant_ids_who_answered
+    ]
+
+    logger.info(f"[MissedResponses] Found {len(participants_who_missed)} participants who missed the question (out of {len(participants)} total)")
+
+    # Calculate time taken (from question start to now)
+    if question_started_at:
+        time_taken_ms = int((datetime.now(timezone.utc) - question_started_at).total_seconds() * 1000)
+    else:
+        time_taken_ms = 0
+
+    # Create missed response for each participant who didn't answer
+    missed_count = 0
+    for participant in participants_who_missed:
+        try:
+            response_data = {
+                "session_id": session_id,
+                "participant_id": participant.id,
+                "question_id": question_id,
+                "answer": [],  # Empty answer indicates "missed"
+                "is_correct": None,  # None for missed (same as polls)
+                "points_earned": 0,  # No points for missed
+                "time_taken_ms": time_taken_ms
+            }
+            db.submit_quiz_response(response_data)
+            missed_count += 1
+        except Exception as e:
+            # If response already exists (race condition), skip
+            logger.warning(f"[MissedResponses] Failed to create missed response for participant {participant.id}: {e}")
+            continue
+
+    logger.info(f"[MissedResponses] Successfully created {missed_count} missed response entries")
+    return missed_count
 
 
 # ==================== QUESTION DELIVERY WITH RANDOMIZATION ====================
@@ -1446,12 +1542,17 @@ def export_session_to_csv(session_id: str, user_id: str, db: DatabaseService) ->
             question = db.get_question_by_id(response.question_id)
             if question:
                 q_key = f"Q{question.order_index + 1} ({question.question_type})"
-                if response.is_correct is True:
-                    question_results[q_key] = "✓"
+                # Check if this is a "missed" response (empty answer)
+                if not response.answer or len(response.answer) == 0:
+                    question_results[q_key] = "○"  # Empty circle for missed
+                elif response.is_correct is True:
+                    question_results[q_key] = "✓"  # Check mark for correct
                 elif response.is_correct is False:
-                    question_results[q_key] = "✗"
+                    question_results[q_key] = "✗"  # X mark for incorrect
+                elif response.is_correct is None and question.question_type == QuestionType.POLL:
+                    question_results[q_key] = "-"  # Dash for poll (no right/wrong)
                 else:
-                    question_results[q_key] = "-"  # Poll or no answer
+                    question_results[q_key] = "?"  # Unknown status
 
         row = {
             "Rank": p_data["rank"],

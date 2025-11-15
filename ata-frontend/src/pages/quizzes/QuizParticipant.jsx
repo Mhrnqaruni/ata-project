@@ -232,10 +232,26 @@ const QuestionDisplay = ({ question, onAnswer, timeRemaining, cooldownRemaining,
   };
 
   const handleSubmit = () => {
-    if (selectedAnswer !== null && !isSubmitted && !timeExpired) {
-      setIsSubmitted(true);
-      onAnswer(selectedAnswer);
+    if (isSubmitted || timeExpired) return;
+
+    let answerToSubmit = null;
+
+    if (question.type === 'multiple_choice' || question.type === 'poll') {
+      // Answer is an index number
+      if (selectedAnswer === null) return;
+      answerToSubmit = selectedAnswer;
+    } else if (question.type === 'true_false') {
+      // Answer is a boolean
+      if (selectedAnswer === null) return;
+      answerToSubmit = selectedAnswer;
+    } else if (question.type === 'short_answer') {
+      // Answer is a string
+      if (!selectedAnswer || selectedAnswer.trim() === '') return;
+      answerToSubmit = selectedAnswer.trim();
     }
+
+    setIsSubmitted(true);
+    onAnswer(answerToSubmit);
   };
 
   const getProgressColor = () => {
@@ -295,38 +311,118 @@ const QuestionDisplay = ({ question, onAnswer, timeRemaining, cooldownRemaining,
             </Typography>
           </Paper>
 
-          {/* Answer Options */}
-          <Grid container spacing={2}>
-            {question.options && question.options.map((option, index) => (
-              <Grid item xs={12} sm={6} key={index}>
-                <Grow in timeout={300 * (index + 1)}>
+          {/* Answer Options - Conditional rendering based on question type */}
+          {(question.type === 'multiple_choice' || question.type === 'poll') && question.options && (
+            <Grid container spacing={2}>
+              {question.options.map((option, index) => (
+                <Grid item xs={12} sm={6} key={index}>
+                  <Grow in timeout={300 * (index + 1)}>
+                    <Button
+                      fullWidth
+                      variant={selectedAnswer === index ? 'contained' : 'outlined'}
+                      size="large"
+                      onClick={() => handleSelect(index)}
+                      disabled={isSubmitted || timeExpired}
+                      sx={{
+                        py: 3,
+                        fontSize: '1.2rem',
+                        textTransform: 'none',
+                        borderWidth: 3,
+                        '&:hover': {
+                          borderWidth: 3,
+                          transform: 'scale(1.02)',
+                          transition: 'transform 0.2s'
+                        }
+                      }}
+                    >
+                      {option}
+                    </Button>
+                  </Grow>
+                </Grid>
+              ))}
+            </Grid>
+          )}
+
+          {/* True/False Buttons */}
+          {question.type === 'true_false' && (
+            <Grid container spacing={3} sx={{ maxWidth: 600, mx: 'auto' }}>
+              <Grid item xs={6}>
+                <Grow in timeout={300}>
                   <Button
                     fullWidth
-                    variant={selectedAnswer === index ? 'contained' : 'outlined'}
+                    variant={selectedAnswer === true ? 'contained' : 'outlined'}
                     size="large"
-                    onClick={() => handleSelect(index)}
+                    color={selectedAnswer === true ? 'success' : 'primary'}
+                    onClick={() => handleSelect(true)}
                     disabled={isSubmitted || timeExpired}
                     sx={{
-                      py: 3,
-                      fontSize: '1.2rem',
-                      textTransform: 'none',
+                      py: 4,
+                      fontSize: '1.5rem',
+                      fontWeight: 700,
                       borderWidth: 3,
-                      '&:hover': {
-                        borderWidth: 3,
-                        transform: 'scale(1.02)',
-                        transition: 'transform 0.2s'
-                      }
+                      '&:hover': { borderWidth: 3, transform: 'scale(1.05)', transition: 'transform 0.2s' }
                     }}
                   >
-                    {option}
+                    ✓ True
                   </Button>
                 </Grow>
               </Grid>
-            ))}
-          </Grid>
+              <Grid item xs={6}>
+                <Grow in timeout={400}>
+                  <Button
+                    fullWidth
+                    variant={selectedAnswer === false ? 'contained' : 'outlined'}
+                    size="large"
+                    color={selectedAnswer === false ? 'error' : 'primary'}
+                    onClick={() => handleSelect(false)}
+                    disabled={isSubmitted || timeExpired}
+                    sx={{
+                      py: 4,
+                      fontSize: '1.5rem',
+                      fontWeight: 700,
+                      borderWidth: 3,
+                      '&:hover': { borderWidth: 3, transform: 'scale(1.05)', transition: 'transform 0.2s' }
+                    }}
+                  >
+                    ✗ False
+                  </Button>
+                </Grow>
+              </Grid>
+            </Grid>
+          )}
 
-          {/* Submit Button */}
-          {!isSubmitted && !timeExpired && selectedAnswer !== null && (
+          {/* Short Answer Text Field */}
+          {question.type === 'short_answer' && (
+            <Grow in timeout={300}>
+              <Box sx={{ maxWidth: 700, mx: 'auto' }}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={4}
+                  variant="outlined"
+                  placeholder="Type your answer here..."
+                  value={selectedAnswer || ''}
+                  onChange={(e) => setSelectedAnswer(e.target.value)}
+                  disabled={isSubmitted || timeExpired}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      fontSize: '1.2rem',
+                      backgroundColor: 'background.paper'
+                    }
+                  }}
+                  autoFocus
+                />
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                  Your answer will be checked against the correct keywords
+                </Typography>
+              </Box>
+            </Grow>
+          )}
+
+          {/* Submit Button - Show for all question types when answer is valid */}
+          {!isSubmitted && !timeExpired && (
+            (selectedAnswer !== null && selectedAnswer !== '' && (question.type !== 'short_answer' || (typeof selectedAnswer === 'string' && selectedAnswer.trim() !== '')))
+          ) && (
             <Fade in>
               <Box sx={{ textAlign: 'center', mt: 4 }}>
                 <Button
@@ -690,10 +786,11 @@ const QuizParticipant = () => {
     }
   }, [timeRemaining, autoAdvanceEnabled, cooldownSeconds, phase]);
 
-  const handleAnswer = async (answerIndex) => {
+  const handleAnswer = async (answer) => {
     console.log('[QuizParticipant] Submitting answer:', {
       questionId: currentQuestion.id,
-      answerIndex: answerIndex,
+      questionType: currentQuestion.type,
+      answer: answer,
       timeRemaining: timeRemaining
     });
 
@@ -702,11 +799,25 @@ const QuizParticipant = () => {
 
       console.log('[QuizParticipant] Time taken:', timeTaken, 'ms');
 
+      // Format answer as array based on question type
+      let formattedAnswer;
+      if (currentQuestion.type === 'multiple_choice' || currentQuestion.type === 'poll') {
+        formattedAnswer = [answer]; // Index number
+      } else if (currentQuestion.type === 'true_false') {
+        formattedAnswer = [answer]; // Boolean
+      } else if (currentQuestion.type === 'short_answer') {
+        formattedAnswer = [answer]; // String
+      } else {
+        formattedAnswer = [answer]; // Fallback
+      }
+
+      console.log('[QuizParticipant] Formatted answer for API:', formattedAnswer);
+
       await quizService.submitAnswer(
         session.id,
         {
           question_id: currentQuestion.id,
-          answer: [answerIndex],
+          answer: formattedAnswer,
           time_taken_ms: timeTaken
         },
         guestToken

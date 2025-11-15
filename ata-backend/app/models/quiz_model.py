@@ -95,7 +95,7 @@ class QuizQuestionBase(BaseSchema):
     question_text: str = Field(..., min_length=1, max_length=2000, description="Question text")
     options: List[str] = Field(default_factory=list, description="Answer options for multiple choice/poll")
     correct_answer: List[Union[str, bool, int]] = Field(default_factory=list, description="Correct answer(s)")
-    points: int = Field(default=10, ge=1, le=100, description="Points awarded for correct answer")
+    points: int = Field(default=10, ge=0, le=100, description="Points awarded for correct answer")
     time_limit_seconds: Optional[int] = Field(None, ge=5, le=300, description="Time limit in seconds")
     explanation: Optional[str] = Field(None, max_length=1000, description="Explanation shown after answer")
     media_url: Optional[str] = Field(None, max_length=500, description="URL to image/video")
@@ -141,6 +141,20 @@ class QuizQuestionBase(BaseSchema):
 
         return v
 
+    @field_validator('points')
+    @classmethod
+    def validate_points(cls, v: int, info) -> int:
+        """Set default points for poll questions to 0."""
+        question_type = info.data.get('question_type')
+
+        # If points not explicitly set and this is a poll, default to 0
+        if question_type == QuestionType.POLL:
+            # If default value (10) is still set, change to 0 for polls
+            if v == 10:
+                return 0
+
+        return v
+
 
 class QuizQuestionCreate(QuizQuestionBase):
     """Schema for creating a new question."""
@@ -153,7 +167,7 @@ class QuizQuestionUpdate(BaseSchema):
     question_text: Optional[str] = Field(None, min_length=1, max_length=2000)
     options: Optional[List[str]] = None
     correct_answer: Optional[List[Union[str, bool, int]]] = None
-    points: Optional[int] = Field(None, ge=1, le=100)
+    points: Optional[int] = Field(None, ge=0, le=100)
     time_limit_seconds: Optional[int] = Field(None, ge=5, le=300)
     explanation: Optional[str] = Field(None, max_length=1000)
     media_url: Optional[str] = Field(None, max_length=500)

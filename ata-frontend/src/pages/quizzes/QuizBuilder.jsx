@@ -61,9 +61,14 @@ const QUESTION_TYPES = [
  */
 const QuestionEditor = ({ question, index, onChange, onDelete, onDuplicate }) => {
   const [localQuestion, setLocalQuestion] = useState(question);
+  const [shortAnswerText, setShortAnswerText] = useState('');
 
   useEffect(() => {
     setLocalQuestion(question);
+    // Initialize shortAnswerText when question changes
+    if (question.question_type === 'short_answer' && question.correct_answer) {
+      setShortAnswerText(question.correct_answer.join('\n'));
+    }
   }, [question]);
 
   const handleChange = (field, value) => {
@@ -71,16 +76,31 @@ const QuestionEditor = ({ question, index, onChange, onDelete, onDuplicate }) =>
 
     // FIX: When changing question type, reset correct_answer appropriately
     if (field === 'question_type') {
+      const previousType = localQuestion.question_type;
+
       if (value === 'poll') {
         updated.correct_answer = [];  // Polls have no correct answer
+        updated.points = 0;  // Polls default to 0 points
       } else if (value === 'true_false') {
         updated.correct_answer = [true];  // Default to true
+        // If coming from poll (0 points), restore to 10
+        if (previousType === 'poll' && updated.points === 0) {
+          updated.points = 10;
+        }
       } else if (value === 'multiple_choice') {
         updated.correct_answer = [];  // Will be set when user selects
+        // If coming from poll (0 points), restore to 10
+        if (previousType === 'poll' && updated.points === 0) {
+          updated.points = 10;
+        }
       } else if (value === 'short_answer') {
         updated.correct_answer = [];  // Will be set when user enters keywords
+        // If coming from poll (0 points), restore to 10
+        if (previousType === 'poll' && updated.points === 0) {
+          updated.points = 10;
+        }
       }
-      console.log('[QuestionEditor] Question type changed to:', value, 'Reset correct_answer to:', updated.correct_answer);
+      console.log('[QuestionEditor] Question type changed to:', value, 'Reset correct_answer to:', updated.correct_answer, 'Points:', updated.points);
     }
 
     setLocalQuestion(updated);
@@ -172,9 +192,10 @@ const QuestionEditor = ({ question, index, onChange, onDelete, onDuplicate }) =>
               fullWidth
               type="number"
               label="Points"
-              value={localQuestion.points || 10}
-              onChange={(e) => handleChange('points', parseInt(e.target.value) || 10)}
-              InputProps={{ inputProps: { min: 1, max: 100 } }}
+              value={localQuestion.points !== undefined ? localQuestion.points : (localQuestion.question_type === 'poll' ? 0 : 10)}
+              onChange={(e) => handleChange('points', parseInt(e.target.value) || 0)}
+              InputProps={{ inputProps: { min: 0, max: 100 } }}
+              helperText={localQuestion.question_type === 'poll' ? "Polls typically have 0 points" : ""}
             />
           </Grid>
 
@@ -274,11 +295,21 @@ const QuestionEditor = ({ question, index, onChange, onDelete, onDuplicate }) =>
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Correct Answer Keywords (comma-separated)"
-                value={(localQuestion.correct_answer || []).join(', ')}
-                onChange={(e) => handleChange('correct_answer', e.target.value.split(',').map(s => s.trim()))}
-                placeholder="e.g., Paris, paris, PARIS"
-                helperText="Enter keywords that should appear in the answer. Matching is case-insensitive by default."
+                multiline
+                rows={3}
+                label="Correct Answer Keywords"
+                value={shortAnswerText}
+                onChange={(e) => setShortAnswerText(e.target.value)}
+                onBlur={() => {
+                  // Only update when field loses focus
+                  const keywords = shortAnswerText
+                    .split(/[\n,]/)
+                    .map(s => s.trim())
+                    .filter(s => s.length > 0);
+                  handleChange('correct_answer', keywords);
+                }}
+                placeholder="Enter keywords (one per line or comma-separated):&#10;Paris&#10;france&#10;European capital"
+                helperText="Enter keywords (one per line OR comma-separated). Spaces within keywords are allowed. Matching is case-insensitive."
               />
             </Grid>
           )}
