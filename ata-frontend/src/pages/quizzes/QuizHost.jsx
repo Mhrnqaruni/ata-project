@@ -414,6 +414,18 @@ const QuizHost = () => {
     };
   }, []);
 
+  // FIX Issue 6: Auto-navigate to analytics when quiz ends
+  useEffect(() => {
+    if (session?.status === 'completed') {
+      console.log('[QuizHost] Quiz completed, navigating to analytics after 3 seconds...');
+      const navigateTimer = setTimeout(() => {
+        navigate(`/quizzes/${session.quiz_id}/sessions/${sessionId}/analytics`);
+      }, 3000); // Give teacher 3 seconds to see completion message
+
+      return () => clearTimeout(navigateTimer);
+    }
+  }, [session?.status, session?.quiz_id, sessionId, navigate]);
+
   const handleStart = async () => {
     try {
       await quizService.startSession(sessionId);

@@ -825,11 +825,8 @@ const QuizParticipant = () => {
 
       console.log('[QuizParticipant] ✅ Answer submitted successfully');
 
-      // Clear timer
-      if (timerRef.current) {
-        console.log('[QuizParticipant] Clearing timer after answer submission');
-        clearInterval(timerRef.current);
-      }
+      // FIX Issue 1: Do NOT clear timer - it should continue running until time expires
+      // This allows all students to see the same countdown and cooldown timing
     } catch (err) {
       console.error('[QuizParticipant] ❌ Failed to submit answer:', err);
       setError(err.message || "Failed to submit answer.");
