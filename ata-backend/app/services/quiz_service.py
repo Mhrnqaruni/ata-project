@@ -437,25 +437,43 @@ def schedule_auto_advance(
     # Calculate total wait time
     total_wait = (time_limit_seconds or 0) + cooldown_seconds
 
-    logger.info(f"[AutoAdvance] Scheduling auto-advance for session {session_id} in {total_wait}s")
+    logger.info(f"[AutoAdvance] ========== SCHEDULING AUTO-ADVANCE ==========")
+    logger.info(f"[AutoAdvance] Session: {session_id}")
+    logger.info(f"[AutoAdvance] Time limit: {time_limit_seconds}s, Cooldown: {cooldown_seconds}s")
+    logger.info(f"[AutoAdvance] Total wait: {total_wait}s")
 
     # Schedule job
     run_time = datetime.now() + timedelta(seconds=total_wait)
     job_id = f"auto_advance_{session_id}_{datetime.now().timestamp()}"
 
-    job = scheduler.add_job(
-        func=auto_advance_question,
-        trigger='date',
-        run_date=run_time,
-        args=[session_id],
-        id=job_id,
-        name=f"Auto-advance session {session_id}",
-        replace_existing=False
-    )
+    logger.info(f"[AutoAdvance] Current time: {datetime.now()}")
+    logger.info(f"[AutoAdvance] Scheduled run time: {run_time}")
+    logger.info(f"[AutoAdvance] Job ID: {job_id}")
+    logger.info(f"[AutoAdvance] Scheduler running: {scheduler.running}")
+    logger.info(f"[AutoAdvance] Scheduler state: {scheduler.state}")
 
-    logger.info(f"[AutoAdvance] Scheduled job {job_id} to run at {run_time}")
+    try:
+        job = scheduler.add_job(
+            func=auto_advance_question,
+            trigger='date',
+            run_date=run_time,
+            args=[session_id],
+            id=job_id,
+            name=f"Auto-advance session {session_id}",
+            replace_existing=False
+        )
 
-    return job_id
+        logger.info(f"[AutoAdvance] ✅ Job added successfully!")
+        logger.info(f"[AutoAdvance] Job object: {job}")
+        logger.info(f"[AutoAdvance] Job next run time: {job.next_run_time}")
+        logger.info(f"[AutoAdvance] Total jobs in scheduler: {len(scheduler.get_jobs())}")
+        logger.info(f"[AutoAdvance] All jobs: {[j.id for j in scheduler.get_jobs()]}")
+        logger.info(f"[AutoAdvance] ==========================================")
+
+        return job_id
+    except Exception as e:
+        logger.error(f"[AutoAdvance] ❌ FAILED to add job: {e}", exc_info=True)
+        raise
 
 
 def cancel_auto_advance(session_id: str, db: DatabaseService) -> None:
@@ -501,23 +519,36 @@ def auto_advance_question(session_id: str):
     from app.routers.quiz_websocket_router import connection_manager
     from app.core.quiz_websocket import build_question_started_message
     import asyncio
+    import threading
 
-    logger.info(f"[AutoAdvance] Executing auto-advance for session {session_id}")
+    logger.info(f"[AutoAdvance] ========== EXECUTING AUTO-ADVANCE ==========")
+    logger.info(f"[AutoAdvance] Session: {session_id}")
+    logger.info(f"[AutoAdvance] Execution time: {datetime.now()}")
+    logger.info(f"[AutoAdvance] Thread: {threading.current_thread().name}")
+    logger.info(f"[AutoAdvance] Thread ID: {threading.get_ident()}")
 
     db_session = SessionLocal()
     try:
+        logger.info(f"[AutoAdvance] Database session created")
         db = DatabaseService(db_session)
 
         # Get session
+        logger.info(f"[AutoAdvance] Fetching quiz session from database...")
         session = db.get_quiz_session_by_id(session_id)
         if not session:
-            logger.warning(f"[AutoAdvance] Session not found: {session_id}")
+            logger.warning(f"[AutoAdvance] ❌ Session not found: {session_id}")
             return
+
+        logger.info(f"[AutoAdvance] ✅ Session found: {session_id}")
+        logger.info(f"[AutoAdvance] Session status: {session.status}")
+        logger.info(f"[AutoAdvance] Current question index: {session.current_question_index}")
 
         # Safety check: only advance if still active
         if session.status != SessionStatus.ACTIVE:
-            logger.warning(f"[AutoAdvance] Session not active: {session_id}, status={session.status}")
+            logger.warning(f"[AutoAdvance] ❌ Session not active: {session_id}, status={session.status}")
             return
+
+        logger.info(f"[AutoAdvance] ✅ Session is active, proceeding...")
 
         # Get quiz and questions
         quiz = db.get_quiz_by_id(session.quiz_id, session.user_id)
@@ -616,12 +647,17 @@ def auto_advance_question(session_id: str):
             config["auto_advance_job_id"] = job_id
             db.update_quiz_session(session_id, session.user_id, {"config_snapshot": config})
 
-        logger.info(f"[AutoAdvance] Success: session {session_id} advanced to question {session.current_question_index}")
+        logger.info(f"[AutoAdvance] ✅ SUCCESS: session {session_id} advanced to question {session.current_question_index}")
+        logger.info(f"[AutoAdvance] ==========================================")
 
     except Exception as e:
-        logger.error(f"[AutoAdvance] Error in auto-advance: {e}", exc_info=True)
+        logger.error(f"[AutoAdvance] ❌❌❌ EXCEPTION in auto-advance: {e}", exc_info=True)
+        logger.error(f"[AutoAdvance] Exception type: {type(e).__name__}")
+        logger.error(f"[AutoAdvance] Exception args: {e.args}")
     finally:
+        logger.info(f"[AutoAdvance] Closing database session")
         db_session.close()
+        logger.info(f"[AutoAdvance] Database session closed")
 
 
 # ==================== PARTICIPANT MANAGEMENT ====================
