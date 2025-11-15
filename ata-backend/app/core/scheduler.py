@@ -50,9 +50,12 @@ def cleanup_old_files_task():
         db.close()
 
 
-def start_scheduler():
+async def start_scheduler():
     """
     Start the background scheduler with all scheduled tasks.
+
+    IMPORTANT: This is async to ensure AsyncIOScheduler starts in
+    FastAPI's event loop, not its own separate event loop.
     """
     # Get schedule from environment variable, default to every 6 hours
     # Format: "0 */6 * * *" means "run at minute 0 of every 6th hour"
@@ -67,9 +70,9 @@ def start_scheduler():
         replace_existing=True
     )
 
-    # Start the scheduler
+    # Start the scheduler in the current (FastAPI's) event loop
     scheduler.start()
-    print(f"[SCHEDULER] Scheduler started: File cleanup will run on schedule: {cleanup_schedule}")
+    print(f"[SCHEDULER] Scheduler started in FastAPI's event loop: File cleanup will run on schedule: {cleanup_schedule}")
 
 
 def stop_scheduler():

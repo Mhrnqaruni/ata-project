@@ -61,7 +61,7 @@ async def lifespan(app: FastAPI):
     print("INFO:     Library cache initialized.")
 
     print("INFO:     Starting background scheduler...")
-    scheduler.start_scheduler()
+    await scheduler.start_scheduler()
     print("INFO:     Background scheduler started.")
 
     yield  # The application runs while the context manager is active.
