@@ -74,33 +74,38 @@ const QuestionEditor = ({ question, index, onChange, onDelete, onDuplicate }) =>
   const handleChange = (field, value) => {
     const updated = { ...localQuestion, [field]: value };
 
-    // FIX: When changing question type, reset correct_answer appropriately
+    // FIX: When changing question type, reset correct_answer AND options appropriately
     if (field === 'question_type') {
       const previousType = localQuestion.question_type;
 
       if (value === 'poll') {
         updated.correct_answer = [];  // Polls have no correct answer
         updated.points = 0;  // Polls default to 0 points
+        updated.options = ['', ''];  // Initialize with 2 empty options for polls
       } else if (value === 'true_false') {
         updated.correct_answer = [true];  // Default to true
+        updated.options = [];  // True/false has no options (just true/false buttons)
         // If coming from poll (0 points), restore to 10
         if (previousType === 'poll' && updated.points === 0) {
           updated.points = 10;
         }
       } else if (value === 'multiple_choice') {
         updated.correct_answer = [];  // Will be set when user selects
+        updated.options = ['', '', '', ''];  // Initialize with 4 empty options
         // If coming from poll (0 points), restore to 10
         if (previousType === 'poll' && updated.points === 0) {
           updated.points = 10;
         }
       } else if (value === 'short_answer') {
         updated.correct_answer = [];  // Will be set when user enters keywords
+        updated.options = [];  // Short answer has no options (free text input)
+        setShortAnswerText('');  // Reset the local text buffer
         // If coming from poll (0 points), restore to 10
         if (previousType === 'poll' && updated.points === 0) {
           updated.points = 10;
         }
       }
-      console.log('[QuestionEditor] Question type changed to:', value, 'Reset correct_answer to:', updated.correct_answer, 'Points:', updated.points);
+      console.log('[QuestionEditor] Question type changed to:', value, 'Reset correct_answer to:', updated.correct_answer, 'Options:', updated.options, 'Points:', updated.points);
     }
 
     setLocalQuestion(updated);

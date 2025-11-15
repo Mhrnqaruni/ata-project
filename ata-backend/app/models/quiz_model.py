@@ -104,40 +104,51 @@ class QuizQuestionBase(BaseSchema):
     @field_validator('options')
     @classmethod
     def validate_options(cls, v: List[str], info) -> List[str]:
-        """Validate options based on question type."""
+        """
+        Validate options based on question type.
+
+        Note: This is lenient validation for drafts. Strict validation happens
+        in validate_publish_quiz() when publishing.
+        """
         question_type = info.data.get('question_type')
 
+        # Only validate maximum bounds (allow drafts with fewer options)
         if question_type == QuestionType.MULTIPLE_CHOICE:
-            if len(v) < 2 or len(v) > 6:
-                raise ValueError("Multiple choice questions must have 2-6 options")
+            if len(v) > 6:
+                raise ValueError("Multiple choice questions cannot have more than 6 options")
         elif question_type == QuestionType.POLL:
-            if len(v) < 2 or len(v) > 10:
-                raise ValueError("Poll questions must have 2-10 options")
-        elif question_type in [QuestionType.TRUE_FALSE, QuestionType.SHORT_ANSWER]:
-            if len(v) > 0:
-                raise ValueError(f"{question_type} questions should not have options")
+            if len(v) > 10:
+                raise ValueError("Poll questions cannot have more than 10 options")
+        # For TRUE_FALSE and SHORT_ANSWER: allow empty options (will be validated on publish)
 
         return v
 
     @field_validator('correct_answer')
     @classmethod
     def validate_correct_answer(cls, v: List[Any], info) -> List[Any]:
-        """Validate correct answer based on question type."""
+        """
+        Validate correct answer based on question type.
+
+        Note: This is lenient validation for drafts. Strict validation happens
+        in validate_publish_quiz() when publishing.
+        """
         question_type = info.data.get('question_type')
 
+        # Only enforce strict rules that must ALWAYS be true
         if question_type == QuestionType.POLL:
-            # Polls have no correct answer
+            # Polls must NEVER have correct answers
             if len(v) > 0:
                 raise ValueError("Poll questions should not have correct answers")
-        elif question_type == QuestionType.MULTIPLE_CHOICE:
+
+        # For other types: validate TYPE when present, but allow empty for drafts
+        if question_type == QuestionType.TRUE_FALSE and len(v) > 0:
+            # If answer is provided, it must be a boolean
+            if not isinstance(v[0], bool):
+                raise ValueError("True/false correct answer must be a boolean")
             if len(v) != 1:
-                raise ValueError("Multiple choice questions must have exactly 1 correct answer")
-        elif question_type == QuestionType.TRUE_FALSE:
-            if len(v) != 1 or not isinstance(v[0], bool):
-                raise ValueError("True/false questions must have exactly 1 boolean answer")
-        elif question_type == QuestionType.SHORT_ANSWER:
-            if len(v) < 1:
-                raise ValueError("Short answer questions must have at least 1 keyword")
+                raise ValueError("True/false questions must have exactly 1 correct answer")
+
+        # For MULTIPLE_CHOICE and SHORT_ANSWER: allow empty (will be validated on publish)
 
         return v
 
