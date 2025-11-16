@@ -144,8 +144,8 @@ const QuizHost = () => {
   const [answersReceived, setAnswersReceived] = useState(0);
   const [wsConnected, setWsConnected] = useState(false);
 
-  // FIX Issue 2: Auto-advance state
-  const [autoAdvanceEnabled, setAutoAdvanceEnabled] = useState(false);
+  // FIX Issue 2: Auto-advance state - DEFAULT TO TRUE so scheduler is enabled
+  const [autoAdvanceEnabled, setAutoAdvanceEnabled] = useState(true);
   const [cooldownSeconds, setCooldownSeconds] = useState(10);
 
   // Timer state for teacher display
@@ -204,6 +204,36 @@ const QuizHost = () => {
       }
     }
   }, [session?.config_snapshot]);
+
+  // 🔥 CRITICAL FIX: Auto-enable auto-advance when session is created
+  // This ensures the backend scheduler job is created when quiz starts
+  useEffect(() => {
+    const enableAutoAdvance = async () => {
+      // Only enable if:
+      // 1. Session exists and is in 'waiting' status (not started yet)
+      // 2. Config doesn't already have auto_advance_enabled set to true
+      if (session && session.status === 'waiting') {
+        const currentConfig = session.config_snapshot || {};
+
+        // If auto-advance isn't explicitly set, or is set to false, enable it
+        if (currentConfig.auto_advance_enabled !== true) {
+          console.log('[QuizHost] 🚀 Auto-enabling auto-advance for session:', sessionId);
+          console.log('[QuizHost] Current config:', currentConfig);
+
+          try {
+            await quizService.toggleAutoAdvance(sessionId, true, cooldownSeconds);
+            console.log('[QuizHost] ✅ Auto-advance enabled successfully');
+          } catch (err) {
+            console.error('[QuizHost] ❌ Failed to auto-enable auto-advance:', err);
+          }
+        } else {
+          console.log('[QuizHost] Auto-advance already enabled in config');
+        }
+      }
+    };
+
+    enableAutoAdvance();
+  }, [session?.id, session?.status, sessionId, cooldownSeconds]); // Run when session loads or status changes
 
   const loadSession = async () => {
     try {
