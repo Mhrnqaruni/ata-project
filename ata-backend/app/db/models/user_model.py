@@ -80,3 +80,10 @@ class User(Base):
         back_populates="owner",
         cascade="all, delete-orphan"
     )
+
+    # Defines the one-to-many relationship to a user's Quizzes.
+    quizzes = relationship(
+        "Quiz",
+        back_populates="owner",
+        cascade="all, delete-orphan"
+    )

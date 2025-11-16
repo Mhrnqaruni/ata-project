@@ -16,6 +16,12 @@ It is responsible for:
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+import os
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # --- Application-specific Router Imports ---
 # Import all router objects that define the various API endpoint groups.
@@ -32,7 +38,11 @@ from .routers import (
     auth_router,
     students_router,
     page_count_router,
-    admin_router
+    admin_router,
+    quiz_router,
+    quiz_session_router,
+    quiz_analytics_router,
+    quiz_websocket_router
 )
 
 # --- Service Imports for Startup Logic ---
@@ -72,12 +82,22 @@ app = FastAPI(
 )
 
 # --- Middleware Configuration ---
-# Configure Cross-Origin Resource Sharing (CORS) to allow requests from any
-# origin. This is suitable for development and for a public API that will be
-# consumed by a Vercel-hosted frontend.
+# FIX #7: Configure CORS with environment variable support
+# For production, set CORS_ORIGINS env var (comma-separated URLs)
+# Example: CORS_ORIGINS="https://ata-frontend.vercel.app,https://custom-domain.com"
+cors_origins_str = os.getenv("CORS_ORIGINS", "*")
+
+if cors_origins_str == "*":
+    allowed_origins = ["*"]
+    logger.warning("[CORS] Using wildcard origin (*) - suitable for development or public APIs")
+    logger.warning("[CORS] For production, set CORS_ORIGINS environment variable to specific domains")
+else:
+    allowed_origins = [origin.strip() for origin in cors_origins_str.split(",") if origin.strip()]
+    logger.info(f"[CORS] Configured allowed origins: {allowed_origins}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -108,6 +128,14 @@ app.include_router(chatbot_router.router, prefix="/api/chatbot", tags=["Chatbot"
 app.include_router(library_router.router, prefix="/api/library", tags=["Curriculum Library"])
 app.include_router(history_router.router, prefix="/api/history", tags=["Generation History"])
 app.include_router(page_count_router.router, prefix="/api/page-count", tags=["Page Counting"])
+
+# --- Quiz System Routes (Authentication Required for Hosts) ---
+app.include_router(quiz_router.router, prefix="/api/quizzes", tags=["Quizzes"])
+app.include_router(quiz_session_router.router, prefix="/api/quiz-sessions", tags=["Quiz Sessions"])
+app.include_router(quiz_analytics_router.router, prefix="/api/quiz-analytics", tags=["Quiz Analytics"])
+
+# --- Quiz WebSocket Route (Real-time Communication) ---
+app.include_router(quiz_websocket_router.router, prefix="/api/ws", tags=["Quiz WebSocket"])
 
 # --- Publicly Accessible Routes (Do Not Require User Login) ---
 # These routes are for resources that are intentionally public, like shareable reports.

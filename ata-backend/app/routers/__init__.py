@@ -11,5 +11,10 @@ from . import (
     public_router,
     auth_router,
     students_router,
-    page_count_router
+    page_count_router,
+    admin_router,
+    quiz_router,
+    quiz_session_router,
+    quiz_analytics_router,
+    quiz_websocket_router
 )

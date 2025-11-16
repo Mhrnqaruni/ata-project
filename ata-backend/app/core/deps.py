@@ -102,3 +102,39 @@ def get_current_active_user(
     if not current_user.is_active:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Inactive user")
     return current_user
+
+
+def get_current_user_from_token(token: str, db: DatabaseService) -> UserModel:
+    """
+    Helper function to verify JWT token and return user.
+
+    This is used in contexts where we can't use FastAPI's Depends mechanism,
+    such as WebSocket connections where the token is passed as a query parameter.
+
+    Args:
+        token: JWT token string
+        db: Database service instance
+
+    Raises:
+        HTTPException(401): If the token is invalid or user doesn't exist
+
+    Returns:
+        The authenticated User object
+    """
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    # Decode token
+    user_id = security.decode_token(token)
+    if user_id is None:
+        raise credentials_exception
+
+    # Fetch user
+    user = db.get_user_by_id(user_id=user_id)
+    if user is None or not user.is_active:
+        raise credentials_exception
+
+    return user
