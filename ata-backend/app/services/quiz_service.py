@@ -554,23 +554,56 @@ def auto_advance_question(session_id: str):
         quiz = db.get_quiz_by_id(session.quiz_id, session.user_id)
         questions = db.get_questions_by_quiz_id(session.quiz_id, session.user_id)
 
+        # 🔥 CRITICAL FIX: Broadcast WebSocket messages FIRST to synchronize all clients
+        config = session.config_snapshot or {}
+        cooldown = config.get("cooldown_seconds", 10)
+
+        # FIX #1: Tell all clients the question has ended
+        logger.info(f"[AutoAdvance] Broadcasting question_ended with {cooldown}s cooldown")
+        asyncio.run(connection_manager.broadcast_to_room(
+            session_id,
+            {
+                "type": "question_ended",
+                "question_index": session.current_question_index,
+                "cooldown_seconds": cooldown,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        ))
+
+        # FIX #2: Tell all clients cooldown has started
+        logger.info(f"[AutoAdvance] Broadcasting cooldown_started: {cooldown}s")
+        asyncio.run(connection_manager.broadcast_to_room(
+            session_id,
+            {
+                "type": "cooldown_started",
+                "cooldown_seconds": cooldown,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        ))
+
         # Check if there are more questions
         next_index = (session.current_question_index or -1) + 1
         if next_index >= len(questions):
             # No more questions, end session automatically
             logger.info(f"[AutoAdvance] No more questions, ending session {session_id}")
+
+            # End the session first
             end_session(session_id, session.user_id, db, reason="completed")
 
-            # Broadcast session_ended
+            # FIX #3: Broadcast session_ended AFTER ending session
+            logger.info(f"[AutoAdvance] Broadcasting session_ended to all clients")
             asyncio.run(connection_manager.broadcast_to_room(
                 session_id,
                 {
                     "type": "session_ended",
-                    "session_id": str(session.id),
+                    "session_id": str(session_id),
                     "reason": "completed",
-                    "final_status": "completed"
+                    "final_status": "completed",
+                    "timestamp": datetime.utcnow().isoformat()
                 }
             ))
+
+            logger.info(f"[AutoAdvance] Session {session_id} ended successfully")
             return
 
         # FIX Issue 3: Create "missed" responses for participants who didn't answer the CURRENT question
@@ -583,18 +616,6 @@ def auto_advance_question(session_id: str):
                 question_started_at=session.question_started_at,
                 db=db
             )
-
-        # FIX BUG #2: Broadcast question_ended to sync all clients before cooldown
-        config = session.config_snapshot or {}
-        logger.info(f"[AutoAdvance] Broadcasting question_ended before advancing...")
-        asyncio.run(connection_manager.broadcast_to_room(
-            session_id,
-            {
-                "type": "question_ended",
-                "question_index": session.current_question_index,
-                "cooldown_seconds": config.get("cooldown_seconds", 10)
-            }
-        ))
 
         # Advance to next question
         session = db.move_to_next_question(session_id, session.user_id)
@@ -646,20 +667,10 @@ def auto_advance_question(session_id: str):
             }
         ))
 
-        # FIX BUG #1: Broadcast cooldown_started so all clients can show countdown
-        config = session.config_snapshot or {}
+        # Schedule next auto-advance if enabled
         if config.get("auto_advance_enabled"):
             cooldown_secs = config.get("cooldown_seconds", 10)
-            logger.info(f"[AutoAdvance] Broadcasting cooldown_started: {cooldown_secs}s")
-            asyncio.run(connection_manager.broadcast_to_room(
-                session_id,
-                {
-                    "type": "cooldown_started",
-                    "cooldown_seconds": cooldown_secs,
-                    "next_question_index": session.current_question_index + 1 if session.current_question_index + 1 < len(questions) else None,
-                    "total_questions": len(questions)
-                }
-            ))
+            logger.info(f"[AutoAdvance] Scheduling next auto-advance with {cooldown_secs}s cooldown")
 
             # Schedule next auto-advance
             job_id = schedule_auto_advance(
