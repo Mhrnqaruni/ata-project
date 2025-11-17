@@ -313,7 +313,8 @@ def create_session_with_room_code(quiz_id: str, user_id: str, db: DatabaseServic
         "status": SessionStatus.WAITING,
         "current_question_index": None,  # Not started yet
         "config_snapshot": config_snapshot,
-        "timeout_hours": timeout_hours
+        "timeout_hours": timeout_hours,
+        "class_id": quiz.class_id  # NEW: Copy class_id from quiz for roster tracking
     }
     session = db.create_quiz_session(session_data)
 
@@ -839,6 +840,181 @@ def join_session_as_student(room_code: str, student_id: str, db: DatabaseService
     return db.add_quiz_participant(participant_data)
 
 
+# ==================== ROSTER TRACKING SERVICE METHODS ====================
+
+def sync_class_roster_to_session(session_id: str, user_id: str, db: DatabaseService) -> List:
+    """
+    Sync class roster to session - creates roster snapshot from class membership.
+
+    Args:
+        session_id: Session ID
+        user_id: User ID (host, for ownership validation)
+        db: Database service
+
+    Returns:
+        List of created QuizSessionRoster entries
+
+    Raises:
+        ValueError: If session not found, no class_id, or validation fails
+
+    Usage:
+        Called when teacher wants to pre-populate expected students list.
+        Creates immutable snapshot of class roster at session start time.
+    """
+    logger.info(f"[RosterSync] Syncing roster for session {session_id}")
+
+    # Get session and validate ownership
+    session = db.get_quiz_session_by_id(session_id, user_id)
+    if not session:
+        raise ValueError("Session not found or access denied")
+
+    # Check if session has a class_id
+    if not session.class_id:
+        raise ValueError("Session is not associated with a class - no roster to sync")
+
+    # Get quiz to validate class ownership
+    quiz = db.get_quiz_by_id(session.quiz_id, user_id)
+    if not quiz:
+        raise ValueError("Quiz not found")
+
+    # Get all students in the class
+    students = db.get_students_by_class_with_details(session.class_id, user_id)
+    if not students:
+        logger.warning(f"[RosterSync] No students found in class {session.class_id}")
+        return []
+
+    logger.info(f"[RosterSync] Found {len(students)} students in class {session.class_id}")
+
+    # Create roster entries for each student
+    roster_entries = []
+    for student in students:
+        roster_data = {
+            "session_id": session_id,
+            "student_id": student["id"],
+            "student_name": student["name"],
+            "student_school_id": student["studentId"],
+            "enrollment_status": "expected",
+            "joined": False
+        }
+        roster_entries.append(roster_data)
+
+    # Bulk create roster entries
+    created_entries = db.create_roster_entries_bulk(roster_entries)
+    logger.info(f"[RosterSync] Created {len(created_entries)} roster entries")
+
+    return created_entries
+
+
+def detect_and_create_outsider(
+    session_id: str,
+    participant_id: str,
+    student_school_id: str,
+    guest_name: str,
+    detection_reason: str,
+    db: DatabaseService
+):
+    """
+    Detect and record an outsider student (not on expected roster).
+
+    Args:
+        session_id: Session ID
+        participant_id: Participant ID who joined
+        student_school_id: Student school ID they provided
+        guest_name: Name they provided
+        detection_reason: Why detected as outsider (not_in_class, no_class_set, student_not_found)
+        db: Database service
+
+    Returns:
+        Created QuizOutsiderStudent record
+
+    Usage:
+        Called when student joins but isn't on expected roster.
+        Creates audit record for teacher review.
+    """
+    logger.warning(
+        f"[OutsiderDetect] Student detected: session={session_id}, "
+        f"student_id={student_school_id}, reason={detection_reason}"
+    )
+
+    outsider_data = {
+        "session_id": session_id,
+        "participant_id": participant_id,
+        "student_school_id": student_school_id,
+        "guest_name": guest_name,
+        "detection_reason": detection_reason,
+        "flagged_by_teacher": False
+    }
+
+    outsider = db.create_outsider_record(outsider_data)
+    logger.info(f"[OutsiderDetect] Created outsider record: {outsider.id}")
+
+    return outsider
+
+
+def get_session_attendance_summary(session_id: str, user_id: str, db: DatabaseService) -> Dict:
+    """
+    Get comprehensive attendance summary for a session.
+
+    Args:
+        session_id: Session ID
+        user_id: User ID (host, for ownership validation)
+        db: Database service
+
+    Returns:
+        Dictionary with:
+        - roster_summary: Stats for expected students (if class-based)
+        - outsider_summary: Stats for outsider students
+        - total_participants: Total count
+        - active_participants: Active count
+
+    Usage:
+        Called by teacher to view attendance dashboard.
+    """
+    logger.info(f"[AttendanceSummary] Getting summary for session {session_id}")
+
+    # Validate session ownership
+    session = db.get_quiz_session_by_id(session_id, user_id)
+    if not session:
+        raise ValueError("Session not found or access denied")
+
+    # Get all participants
+    all_participants = db.get_participants_by_session(session_id, active_only=False)
+    active_participants = [p for p in all_participants if p.is_active]
+
+    summary = {
+        "session_id": session_id,
+        "class_id": session.class_id,
+        "total_participants": len(all_participants),
+        "active_participants": len(active_participants)
+    }
+
+    # Get roster summary if session has class_id
+    if session.class_id:
+        roster_stats = db.get_roster_attendance_stats(session_id)
+        roster_entries = db.get_roster_by_session(session_id)
+        summary["roster_summary"] = {
+            **roster_stats,
+            "entries": roster_entries
+        }
+    else:
+        summary["roster_summary"] = None
+
+    # Get outsider summary
+    outsiders = db.get_outsiders_by_session(session_id)
+    summary["outsider_summary"] = {
+        "total_outsiders": len(outsiders),
+        "records": outsiders
+    }
+
+    logger.info(
+        f"[AttendanceSummary] Session {session_id}: "
+        f"{summary['total_participants']} total, "
+        f"{len(outsiders)} outsiders"
+    )
+
+    return summary
+
+
 def join_session_as_identified_guest(
     room_code: str,
     student_name: str,
@@ -923,6 +1099,45 @@ def join_session_as_identified_guest(
     # Generate guest token for authentication
     guest_token = generate_guest_token()
 
+    # NEW: Check roster and determine if student is expected or outsider
+    is_outsider = False
+    roster_entry_id = None
+    detection_reason = None
+
+    if session.class_id:
+        # Session has a class - check if student is on roster
+        logger.info(f"[RosterCheck] Session has class {session.class_id}, checking roster for student {student_id}")
+
+        # Try to find student in students table by school ID
+        student = db.get_student_by_student_id(student_id)
+
+        if student:
+            # Student exists in database - check if they're in this class
+            is_in_class = db.is_student_in_class(student.id, session.class_id)
+
+            if is_in_class:
+                # Student is on roster - find their roster entry
+                roster_entry = db.get_roster_entry_by_student(session.id, student.id)
+                if roster_entry:
+                    roster_entry_id = roster_entry.id
+                    logger.info(f"[RosterCheck] Student {student_id} is on roster, entry_id={roster_entry_id}")
+                else:
+                    # Student is in class but roster wasn't synced yet - not an outsider
+                    logger.info(f"[RosterCheck] Student {student_id} is in class but no roster entry (roster not synced)")
+            else:
+                # Student exists but not in this class
+                is_outsider = True
+                detection_reason = "not_in_class"
+                logger.warning(f"[RosterCheck] Student {student_id} found in DB but not in class {session.class_id}")
+        else:
+            # Student ID doesn't exist in any class
+            is_outsider = True
+            detection_reason = "student_not_found"
+            logger.warning(f"[RosterCheck] Student ID {student_id} not found in database")
+    else:
+        # No class_id - all participants are technically "outsiders" but we don't flag them
+        logger.info(f"[RosterCheck] Session has no class_id, skipping roster check")
+
     # Create participant with BOTH student_id AND guest info
     participant_data = {
         "session_id": session.id,
@@ -932,11 +1147,33 @@ def join_session_as_identified_guest(
         "score": 0,
         "correct_answers": 0,
         "total_time_ms": 0,
-        "is_active": True
+        "is_active": True,
+        "is_outsider": is_outsider,  # NEW: Flag outsider status
+        "roster_entry_id": roster_entry_id  # NEW: Link to roster entry if found
     }
     participant = db.add_quiz_participant(participant_data)
 
-    logger.info(f"[IdentifiedGuestJoin] Success: participant_id={participant.id}, student_id={student_id}, name={unique_name}, session={session.id}")
+    # NEW: If student is on roster, mark roster entry as joined
+    if roster_entry_id:
+        db.update_roster_entry_joined(roster_entry_id, participant.id, participant.joined_at)
+        logger.info(f"[RosterUpdate] Marked roster entry {roster_entry_id} as joined")
+
+    # NEW: If student is outsider, create outsider record
+    if is_outsider and detection_reason:
+        detect_and_create_outsider(
+            session_id=session.id,
+            participant_id=participant.id,
+            student_school_id=student_id,
+            guest_name=unique_name,
+            detection_reason=detection_reason,
+            db=db
+        )
+
+    logger.info(
+        f"[IdentifiedGuestJoin] Success: participant_id={participant.id}, "
+        f"student_id={student_id}, name={unique_name}, session={session.id}, "
+        f"is_outsider={is_outsider}, roster_entry={roster_entry_id}"
+    )
 
     return participant, guest_token
 
