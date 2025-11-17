@@ -215,26 +215,18 @@ const OutsiderPanel = ({ outsiders, sessionId, onOutsiderUpdate }) => {
     try {
       const newFlaggedStatus = !outsider.flagged_by_teacher;
 
-      const response = await fetch(`/api/quiz-sessions/${sessionId}/outsiders/${outsider.id}/flag`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-        },
-        body: JSON.stringify({
-          flagged: newFlaggedStatus,
-          teacher_notes: outsider.teacher_notes || null
-        })
-      });
+      // Use service method instead of direct fetch
+      await quizService.flagOutsiderStudent(
+        sessionId,
+        outsider.id,
+        newFlaggedStatus,
+        outsider.teacher_notes || null
+      );
 
-      if (response.ok) {
-        console.log('[OutsiderPanel] Outsider flagged successfully');
-        // Trigger parent refresh
-        if (onOutsiderUpdate) {
-          onOutsiderUpdate();
-        }
-      } else {
-        console.error('[OutsiderPanel] Failed to flag outsider:', response.status);
+      console.log('[OutsiderPanel] Outsider flagged successfully');
+      // Trigger parent refresh
+      if (onOutsiderUpdate) {
+        onOutsiderUpdate();
       }
     } catch (err) {
       console.error('[OutsiderPanel] Error flagging outsider:', err);
@@ -258,27 +250,19 @@ const OutsiderPanel = ({ outsiders, sessionId, onOutsiderUpdate }) => {
     if (!outsider) return;
 
     try {
-      const response = await fetch(`/api/quiz-sessions/${sessionId}/outsiders/${outsider.id}/flag`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-        },
-        body: JSON.stringify({
-          flagged: outsider.flagged_by_teacher,
-          teacher_notes: notesText
-        })
-      });
+      // Use service method instead of direct fetch
+      await quizService.flagOutsiderStudent(
+        sessionId,
+        outsider.id,
+        outsider.flagged_by_teacher,
+        notesText
+      );
 
-      if (response.ok) {
-        console.log('[OutsiderPanel] Notes saved successfully');
-        handleCloseNotesDialog();
-        // Trigger parent refresh
-        if (onOutsiderUpdate) {
-          onOutsiderUpdate();
-        }
-      } else {
-        console.error('[OutsiderPanel] Failed to save notes:', response.status);
+      console.log('[OutsiderPanel] Notes saved successfully');
+      handleCloseNotesDialog();
+      // Trigger parent refresh
+      if (onOutsiderUpdate) {
+        onOutsiderUpdate();
       }
     } catch (err) {
       console.error('[OutsiderPanel] Error saving notes:', err);
@@ -655,32 +639,16 @@ const QuizHost = () => {
     setIsLoadingRoster(true);
     try {
       console.log('[QuizHost] Fetching roster for session:', sid);
-      const response = await fetch(`/api/quiz-sessions/${sid}/roster`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-        }
-      });
 
-      if (response.ok) {
-        const rosterData = await response.json();
-        console.log('[QuizHost] Roster loaded:', rosterData);
-        setRoster(rosterData);
-      } else {
-        console.warn('[QuizHost] Failed to load roster:', response.status);
-      }
+      // Use service methods instead of direct fetch
+      const rosterData = await quizService.getSessionRoster(sid);
+      console.log('[QuizHost] Roster loaded:', rosterData);
+      setRoster(rosterData);
 
       // Load outsiders
-      const outsidersResponse = await fetch(`/api/quiz-sessions/${sid}/outsiders`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-        }
-      });
-
-      if (outsidersResponse.ok) {
-        const outsidersData = await outsidersResponse.json();
-        console.log('[QuizHost] Outsiders loaded:', outsidersData);
-        setOutsiders(outsidersData.records || []);
-      }
+      const outsidersData = await quizService.getSessionOutsiders(sid);
+      console.log('[QuizHost] Outsiders loaded:', outsidersData);
+      setOutsiders(outsidersData.records || []);
     } catch (err) {
       console.error('[QuizHost] Error loading roster:', err);
       // Don't show error to user - roster is optional

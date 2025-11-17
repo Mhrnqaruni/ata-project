@@ -432,6 +432,92 @@ const quizService = {
     }
   },
 
+  // ==================== ROSTER & ATTENDANCE OPERATIONS ====================
+
+  /**
+   * Get comprehensive attendance summary for a session
+   * Returns roster summary, outsider summary, and participation stats
+   */
+  getSessionAttendance: async (sessionId) => {
+    try {
+      const response = await apiClient.get(`/api/quiz-sessions/${sessionId}/attendance`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching attendance for session ${sessionId}:`, error);
+      const errorMessage = error.response?.data?.detail || "Could not load attendance data.";
+      throw new Error(errorMessage);
+    }
+  },
+
+  /**
+   * Get class roster for a session
+   * Returns expected students with join/absent status
+   */
+  getSessionRoster: async (sessionId) => {
+    try {
+      const response = await apiClient.get(`/api/quiz-sessions/${sessionId}/roster`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching roster for session ${sessionId}:`, error);
+      const errorMessage = error.response?.data?.detail || "Could not load roster.";
+      throw new Error(errorMessage);
+    }
+  },
+
+  /**
+   * Get outsider students for a session
+   * Returns students who joined but are not on expected roster
+   */
+  getSessionOutsiders: async (sessionId) => {
+    try {
+      const response = await apiClient.get(`/api/quiz-sessions/${sessionId}/outsiders`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching outsiders for session ${sessionId}:`, error);
+      const errorMessage = error.response?.data?.detail || "Could not load outsider data.";
+      throw new Error(errorMessage);
+    }
+  },
+
+  /**
+   * Flag or unflag an outsider student for teacher review
+   * @param {string} sessionId - Session ID
+   * @param {string} outsiderId - Outsider record ID
+   * @param {boolean} flagged - Whether to flag the outsider
+   * @param {string|null} teacherNotes - Optional notes from teacher
+   */
+  flagOutsiderStudent: async (sessionId, outsiderId, flagged, teacherNotes = null) => {
+    try {
+      const response = await apiClient.put(
+        `/api/quiz-sessions/${sessionId}/outsiders/${outsiderId}/flag`,
+        {
+          flagged: flagged,
+          teacher_notes: teacherNotes
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error flagging outsider ${outsiderId}:`, error);
+      const errorMessage = error.response?.data?.detail || "Could not flag outsider.";
+      throw new Error(errorMessage);
+    }
+  },
+
+  /**
+   * Sync roster from class (refresh expected students list)
+   * @param {string} sessionId - Session ID
+   */
+  syncSessionRoster: async (sessionId) => {
+    try {
+      const response = await apiClient.post(`/api/quiz-sessions/${sessionId}/roster/sync`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error syncing roster for session ${sessionId}:`, error);
+      const errorMessage = error.response?.data?.detail || "Could not sync roster.";
+      throw new Error(errorMessage);
+    }
+  },
+
   // ==================== WEBSOCKET CONNECTION ====================
 
   /**
