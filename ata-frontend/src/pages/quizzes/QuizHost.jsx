@@ -205,35 +205,9 @@ const QuizHost = () => {
     }
   }, [session?.config_snapshot]);
 
-  // 🔥 CRITICAL FIX: Auto-enable auto-advance when session is created
-  // This ensures the backend scheduler job is created when quiz starts
-  useEffect(() => {
-    const enableAutoAdvance = async () => {
-      // Only enable if:
-      // 1. Session exists and is in 'waiting' status (not started yet)
-      // 2. Config doesn't already have auto_advance_enabled set to true
-      if (session && session.status === 'waiting') {
-        const currentConfig = session.config_snapshot || {};
-
-        // If auto-advance isn't explicitly set, or is set to false, enable it
-        if (currentConfig.auto_advance_enabled !== true) {
-          console.log('[QuizHost] 🚀 Auto-enabling auto-advance for session:', sessionId);
-          console.log('[QuizHost] Current config:', currentConfig);
-
-          try {
-            await quizService.toggleAutoAdvance(sessionId, true, cooldownSeconds);
-            console.log('[QuizHost] ✅ Auto-advance enabled successfully');
-          } catch (err) {
-            console.error('[QuizHost] ❌ Failed to auto-enable auto-advance:', err);
-          }
-        } else {
-          console.log('[QuizHost] Auto-advance already enabled in config');
-        }
-      }
-    };
-
-    enableAutoAdvance();
-  }, [session?.id, session?.status, sessionId, cooldownSeconds]); // Run when session loads or status changes
+  // REMOVED: Auto-enable logic - now handled by backend on session creation
+  // Auto-advance is enabled by default when session is created on the backend
+  // This prevents race conditions and ensures scheduler job is always created
 
   const loadSession = async () => {
     try {
@@ -396,7 +370,7 @@ const QuizHost = () => {
         // Navigate to analytics after 2 seconds
         setTimeout(() => {
           console.log('[QuizHost] Navigating to analytics...');
-          navigate(`/quizzes/${session.quiz_id}/sessions/${sessionId}/analytics`);
+          navigate(`/quizzes/${session.quiz_id}/analytics`);
         }, 2000);
         break;
 
@@ -485,12 +459,12 @@ const QuizHost = () => {
     if (session?.status === 'completed') {
       console.log('[QuizHost] Quiz completed, navigating to analytics after 3 seconds...');
       const navigateTimer = setTimeout(() => {
-        navigate(`/quizzes/${session.quiz_id}/sessions/${sessionId}/analytics`);
+        navigate(`/quizzes/${session.quiz_id}/analytics`);
       }, 3000); // Give teacher 3 seconds to see completion message
 
       return () => clearTimeout(navigateTimer);
     }
-  }, [session?.status, session?.quiz_id, sessionId, navigate]);
+  }, [session?.status, session?.quiz_id, navigate]);
 
   const handleStart = async () => {
     try {
@@ -726,11 +700,11 @@ const QuizHost = () => {
                 {cooldownRemaining > 0 ? (
                   // Cooldown Timer
                   <Box sx={{ textAlign: 'center', py: 2 }}>
-                    <Alert severity="info" sx={{ mb: 2 }}>
-                      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                    <Alert severity="info" sx={{ mb: 2, textAlign: 'center' }}>
+                      <Typography variant="subtitle2" sx={{ mb: 1, textAlign: 'center' }}>
                         Next Question Starting In
                       </Typography>
-                      <Typography variant="h2" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                      <Typography variant="h2" sx={{ fontWeight: 700, color: 'primary.main', textAlign: 'center' }}>
                         {cooldownRemaining}s
                       </Typography>
                     </Alert>

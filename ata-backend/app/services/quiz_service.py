@@ -296,10 +296,13 @@ def create_session_with_room_code(quiz_id: str, user_id: str, db: DatabaseServic
     logger.info(f"[SessionCreate] Generated room code: {room_code}")
 
     # Create config snapshot (freeze quiz state)
+    # FIX: Enable auto-advance by default with 10-second cooldown
     config_snapshot = {
         "quiz_title": quiz.title,
         "quiz_settings": quiz.settings,
-        "total_questions": len(questions)
+        "total_questions": len(questions),
+        "auto_advance_enabled": True,  # Enable auto-advance by default
+        "cooldown_seconds": 10  # Default 10-second cooldown
     }
 
     # Create session
@@ -672,16 +675,23 @@ def auto_advance_question(session_id: str):
             cooldown_secs = config.get("cooldown_seconds", 10)
             logger.info(f"[AutoAdvance] Scheduling next auto-advance with {cooldown_secs}s cooldown")
 
-            # Schedule next auto-advance
-            job_id = schedule_auto_advance(
-                session_id,
-                current_question.time_limit_seconds or 0,
-                cooldown_secs,
-                db
-            )
-            # Update job_id in config
-            config["auto_advance_job_id"] = job_id
-            db.update_quiz_session(session_id, session.user_id, {"config_snapshot": config})
+            try:
+                # Schedule next auto-advance
+                job_id = schedule_auto_advance(
+                    session_id,
+                    current_question.time_limit_seconds or 0,
+                    cooldown_secs,
+                    db
+                )
+                # Update job_id in config
+                config["auto_advance_job_id"] = job_id
+                db.update_quiz_session(session_id, session.user_id, {"config_snapshot": config})
+                logger.info(f"[AutoAdvance] ✅ Next auto-advance scheduled successfully")
+            except Exception as e:
+                logger.error(f"[AutoAdvance] ❌ Failed to schedule next auto-advance: {e}", exc_info=True)
+                # Disable auto-advance for future questions if scheduling fails
+                config["auto_advance_enabled"] = False
+                db.update_quiz_session(session_id, session.user_id, {"config_snapshot": config})
 
         logger.info(f"[AutoAdvance] ✅ SUCCESS: session {session_id} advanced to question {session.current_question_index}")
         logger.info(f"[AutoAdvance] ==========================================")

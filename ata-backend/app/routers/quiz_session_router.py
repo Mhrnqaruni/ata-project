@@ -245,16 +245,43 @@ async def start_session(
 
             if config.get("auto_advance_enabled"):
                 logger.info(f"[StartSession] ✅ Auto-advance is ENABLED, scheduling job...")
-                job_id = quiz_service.schedule_auto_advance(
-                    session_id,
-                    first_question.time_limit_seconds or 0,
-                    config.get("cooldown_seconds", 10),
-                    db
-                )
-                # Store job_id in config for cancellation
-                config["auto_advance_job_id"] = job_id
-                db.update_quiz_session(session_id, current_user.id, {"config_snapshot": config})
-                logger.info(f"[StartSession] ✅ Job scheduled with ID: {job_id}")
+                try:
+                    # Verify scheduler is running before attempting to schedule
+                    from app.core.scheduler import scheduler
+                    logger.info(f"[StartSession] Scheduler running: {scheduler.running}")
+                    logger.info(f"[StartSession] Scheduler state: {scheduler.state}")
+
+                    if not scheduler.running:
+                        logger.error(f"[StartSession] ❌ CRITICAL: Scheduler is NOT running!")
+                        raise RuntimeError("Background scheduler is not running. Auto-advance will not work.")
+
+                    job_id = quiz_service.schedule_auto_advance(
+                        session_id,
+                        first_question.time_limit_seconds or 0,
+                        config.get("cooldown_seconds", 10),
+                        db
+                    )
+
+                    # Store job_id in config for cancellation
+                    config["auto_advance_job_id"] = job_id
+                    db.update_quiz_session(session_id, current_user.id, {"config_snapshot": config})
+
+                    # Verify job was added
+                    job = scheduler.get_job(job_id)
+                    if job:
+                        logger.info(f"[StartSession] ✅ Job scheduled successfully!")
+                        logger.info(f"[StartSession] Job ID: {job_id}")
+                        logger.info(f"[StartSession] Next run time: {job.next_run_time}")
+                    else:
+                        logger.error(f"[StartSession] ❌ Job was NOT added to scheduler!")
+
+                except Exception as e:
+                    logger.error(f"[StartSession] ❌ FAILED to schedule auto-advance: {e}", exc_info=True)
+                    # Don't fail quiz start, just disable auto-advance for this session
+                    logger.warning(f"[StartSession] Disabling auto-advance for this session due to error")
+                    config["auto_advance_enabled"] = False
+                    config["auto_advance_error"] = str(e)
+                    db.update_quiz_session(session_id, current_user.id, {"config_snapshot": config})
             else:
                 logger.info(f"[StartSession] ❌ Auto-advance is DISABLED, skipping scheduling")
 
@@ -490,15 +517,25 @@ async def next_question(
     # FIX Issue 2: Reschedule auto-advance if enabled
     config = session.config_snapshot or {}
     if config.get("auto_advance_enabled"):
-        job_id = quiz_service.schedule_auto_advance(
-            session_id,
-            current_question.time_limit_seconds or 0,
-            config.get("cooldown_seconds", 10),
-            db
-        )
-        # Update job_id in config using proper DatabaseService method
-        config["auto_advance_job_id"] = job_id
-        db.update_quiz_session(session_id, current_user.id, {"config_snapshot": config})
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"[NextQuestion] Re-scheduling auto-advance for next question...")
+        try:
+            job_id = quiz_service.schedule_auto_advance(
+                session_id,
+                current_question.time_limit_seconds or 0,
+                config.get("cooldown_seconds", 10),
+                db
+            )
+            # Update job_id in config using proper DatabaseService method
+            config["auto_advance_job_id"] = job_id
+            db.update_quiz_session(session_id, current_user.id, {"config_snapshot": config})
+            logger.info(f"[NextQuestion] ✅ Auto-advance re-scheduled with job ID: {job_id}")
+        except Exception as e:
+            logger.error(f"[NextQuestion] ❌ Failed to reschedule auto-advance: {e}", exc_info=True)
+            # Continue without auto-advance for subsequent questions
+            config["auto_advance_enabled"] = False
+            db.update_quiz_session(session_id, current_user.id, {"config_snapshot": config})
 
     return {
         **session.__dict__,

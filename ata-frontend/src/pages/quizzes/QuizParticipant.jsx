@@ -268,11 +268,11 @@ const QuestionDisplay = ({ question, onAnswer, timeRemaining, cooldownRemaining,
           {cooldownRemaining > 0 ? (
             // Cooldown Timer
             <Box sx={{ textAlign: 'center', mb: 3 }}>
-              <Alert severity="info" sx={{ py: 2 }}>
-                <Typography variant="h6" sx={{ mb: 1 }}>
+              <Alert severity="info" sx={{ py: 2, textAlign: 'center' }}>
+                <Typography variant="h6" sx={{ mb: 1, textAlign: 'center' }}>
                   Next Question Starting In
                 </Typography>
-                <Typography variant="h3" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                <Typography variant="h3" sx={{ fontWeight: 700, color: 'primary.main', textAlign: 'center' }}>
                   {cooldownRemaining}s
                 </Typography>
               </Alert>
@@ -441,11 +441,11 @@ const QuestionDisplay = ({ question, onAnswer, timeRemaining, cooldownRemaining,
           {/* FIX BUG #1: Show cooldown timer for ALL students (even those who submitted) */}
           {cooldownRemaining > 0 && (
             <Fade in>
-              <Alert severity="info" sx={{ mt: 4 }}>
-                <Typography variant="h6">
+              <Alert severity="info" sx={{ mt: 4, textAlign: 'center' }}>
+                <Typography variant="h6" sx={{ textAlign: 'center' }}>
                   {isSubmitted ? 'Answer submitted!' : 'Time expired!'}
                 </Typography>
-                <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main', mt: 1 }}>
+                <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main', mt: 1, textAlign: 'center' }}>
                   Next question in {cooldownRemaining}s
                 </Typography>
               </Alert>

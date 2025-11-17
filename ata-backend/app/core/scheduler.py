@@ -53,6 +53,7 @@ def cleanup_old_files_task():
 def start_scheduler():
     """
     Start the background scheduler with all scheduled tasks.
+    This scheduler handles both periodic cleanup jobs and dynamic quiz auto-advance jobs.
     """
     # Get schedule from environment variable, default to every 6 hours
     # Format: "0 */6 * * *" means "run at minute 0 of every 6th hour"
@@ -69,7 +70,11 @@ def start_scheduler():
 
     # Start the scheduler
     scheduler.start()
-    print(f"[SCHEDULER] Scheduler started: File cleanup will run on schedule: {cleanup_schedule}")
+    print(f"[SCHEDULER] Scheduler started successfully!")
+    print(f"[SCHEDULER] - Running: {scheduler.running}")
+    print(f"[SCHEDULER] - State: {scheduler.state}")
+    print(f"[SCHEDULER] - File cleanup schedule: {cleanup_schedule}")
+    print(f"[SCHEDULER] - Quiz auto-advance jobs will be added dynamically when quizzes start")
 
 
 def stop_scheduler():
