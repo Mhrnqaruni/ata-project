@@ -210,6 +210,10 @@ class QuizSession(Base):
     # The user (teacher) hosting the session
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
 
+    # NEW: Class association (denormalized from quiz for performance)
+    # Allows quick roster lookups without joining through quizzes table
+    class_id = Column(String, ForeignKey("classes.id", ondelete="SET NULL"), nullable=True, index=True)
+
     # ===== SESSION IDENTITY =====
     # Unique room code for participants to join (e.g., "AB3K7Q")
     room_code = Column(String(10), nullable=False, unique=True, index=True)
@@ -248,6 +252,9 @@ class QuizSession(Base):
     quiz = relationship("Quiz", back_populates="sessions")
     host = relationship("User")
 
+    # NEW: Class relationship (if session is for a specific class)
+    class_ = relationship("Class", back_populates="quiz_sessions")
+
     # One-to-many relationship with participants
     participants = relationship(
         "QuizParticipant",
@@ -258,6 +265,20 @@ class QuizSession(Base):
     # One-to-many relationship with responses
     responses = relationship(
         "QuizResponse",
+        back_populates="session",
+        cascade="all, delete-orphan"
+    )
+
+    # NEW: One-to-many relationship with roster entries
+    roster_entries = relationship(
+        "QuizSessionRoster",
+        back_populates="session",
+        cascade="all, delete-orphan"
+    )
+
+    # NEW: One-to-many relationship with outsider students
+    outsider_students = relationship(
+        "QuizOutsiderStudent",
         back_populates="session",
         cascade="all, delete-orphan"
     )
@@ -323,6 +344,13 @@ class QuizParticipant(Base):
     # Timestamp when guest data was anonymized (GDPR)
     anonymized_at = Column(DateTime(timezone=True), nullable=True)
 
+    # ===== NEW: ROSTER TRACKING =====
+    # Quick flag for filtering outsiders (students not on expected roster)
+    is_outsider = Column(Boolean, nullable=False, default=False, index=True)
+
+    # Link to roster entry if student was on expected roster
+    roster_entry_id = Column(String, ForeignKey("quiz_session_roster.id", ondelete="SET NULL"), nullable=True)
+
     # ===== TIMESTAMPS =====
     joined_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
@@ -344,6 +372,21 @@ class QuizParticipant(Base):
         "QuizResponse",
         back_populates="participant",
         cascade="all, delete-orphan"
+    )
+
+    # NEW: Link back to roster entry (if participant was on expected roster)
+    roster_entry = relationship(
+        "QuizSessionRoster",
+        back_populates="participant",
+        foreign_keys=[roster_entry_id],
+        uselist=False
+    )
+
+    # NEW: Link to outsider record (if participant is an outsider)
+    outsider_record = relationship(
+        "QuizOutsiderStudent",
+        back_populates="participant",
+        uselist=False
     )
 
     # ===== CONSTRAINTS & INDEXES =====
@@ -375,6 +418,115 @@ class QuizParticipant(Base):
     def __repr__(self):
         identity = f"student_id={self.student_id}" if self.student_id else f"guest='{self.guest_name}'"
         return f"<QuizParticipant(id={self.id}, {identity}, score={self.score})>"
+
+
+class QuizSessionRoster(Base):
+    """
+    Snapshot of expected students for a quiz session.
+
+    Created when a session starts from the class roster. Provides an immutable
+    record of which students were expected to attend, tracks who actually joined,
+    and handles roster changes (students added/dropped after quiz creation).
+    """
+    __tablename__ = "quiz_session_roster"
+
+    # ===== PRIMARY KEY =====
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+
+    # ===== FOREIGN KEYS =====
+    session_id = Column(String, ForeignKey("quiz_sessions.id", ondelete="CASCADE"), nullable=False, index=True)
+    student_id = Column(String, ForeignKey("students.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    # ===== STUDENT INFO (DENORMALIZED) =====
+    # Denormalized for performance - avoid joins when displaying roster
+    student_name = Column(String, nullable=False)
+    student_school_id = Column(String, nullable=False)  # The studentId field from students table
+
+    # ===== ENROLLMENT STATUS =====
+    # Tracks roster changes: 'expected' (on roster at creation), 'added' (added later), 'dropped' (removed from class)
+    enrollment_status = Column(String(20), nullable=False, default="expected")
+
+    # ===== ATTENDANCE TRACKING =====
+    joined = Column(Boolean, nullable=False, default=False, index=True)
+    joined_at = Column(DateTime(timezone=True), nullable=True)
+
+    # ===== PARTICIPANT LINK =====
+    # Links to the actual participant record when student joins
+    participant_id = Column(String, ForeignKey("quiz_participants.id", ondelete="SET NULL"), nullable=True)
+
+    # ===== TIMESTAMPS =====
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    # ===== RELATIONSHIPS =====
+    session = relationship("QuizSession", back_populates="roster_entries")
+    student = relationship("Student")
+    participant = relationship("QuizParticipant", back_populates="roster_entry", foreign_keys=[participant_id])
+
+    # ===== CONSTRAINTS & INDEXES =====
+    __table_args__ = (
+        # Unique constraint: one roster entry per student per session
+        UniqueConstraint("session_id", "student_id", name="uq_session_student"),
+        # Composite index for joined students queries
+        Index("idx_session_roster_joined", "session_id", "joined"),
+    )
+
+    def __repr__(self):
+        status = "joined" if self.joined else "absent"
+        return f"<QuizSessionRoster(student='{self.student_name}', status='{status}')>"
+
+
+class QuizOutsiderStudent(Base):
+    """
+    Tracks students who joined a quiz session but weren't on the expected roster.
+
+    Used for:
+    - Security auditing (unauthorized access attempts)
+    - Analytics (students joining wrong quizzes)
+    - Teacher review and approval
+    - Compliance and reporting
+    """
+    __tablename__ = "quiz_outsider_students"
+
+    # ===== PRIMARY KEY =====
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+
+    # ===== FOREIGN KEYS =====
+    session_id = Column(String, ForeignKey("quiz_sessions.id", ondelete="CASCADE"), nullable=False, index=True)
+    participant_id = Column(String, ForeignKey("quiz_participants.id", ondelete="CASCADE"), nullable=False, unique=True)
+
+    # ===== STUDENT INFO =====
+    # The student ID they entered when joining (may not match any student in system)
+    student_school_id = Column(String, nullable=False, index=True)
+
+    # The name they provided
+    guest_name = Column(String, nullable=False)
+
+    # ===== DETECTION INFO =====
+    # Why they were flagged as outsider:
+    # - 'not_in_class': Student ID found in DB but not in this class
+    # - 'no_class_set': Quiz has no class_id (all participants are "outsiders")
+    # - 'student_not_found': Student ID doesn't exist in any class
+    detection_reason = Column(String(50), nullable=False)
+
+    # ===== TEACHER REVIEW =====
+    flagged_by_teacher = Column(Boolean, nullable=False, default=False)
+    teacher_notes = Column(Text, nullable=True)
+
+    # ===== TIMESTAMPS =====
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    # ===== RELATIONSHIPS =====
+    session = relationship("QuizSession", back_populates="outsider_students")
+    participant = relationship("QuizParticipant", back_populates="outsider_record", foreign_keys=[participant_id])
+
+    # ===== CONSTRAINTS =====
+    __table_args__ = (
+        # Unique constraint: one outsider record per participant per session
+        UniqueConstraint("session_id", "participant_id", name="uq_session_outsider"),
+    )
+
+    def __repr__(self):
+        return f"<QuizOutsiderStudent(name='{self.guest_name}', student_id='{self.student_school_id}', reason='{self.detection_reason}')>"
 
 
 class QuizResponse(Base):

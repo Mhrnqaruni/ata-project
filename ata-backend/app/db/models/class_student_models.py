@@ -50,6 +50,10 @@ class Class(Base):
     student_memberships = relationship("StudentClassMembership", back_populates="class_", cascade="all, delete-orphan")
     students = relationship("Student", secondary="student_class_memberships", viewonly=True)
 
+    # NEW: One-to-many relationship with quiz sessions
+    # Links to quiz sessions that are associated with this class
+    quiz_sessions = relationship("QuizSession", back_populates="class_")
+
 
 class Student(Base):
     """
