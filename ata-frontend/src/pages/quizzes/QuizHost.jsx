@@ -52,6 +52,212 @@ import quizService from '../../services/quizService';
 import { QRCodeSVG } from 'qrcode.react';
 
 /**
+ * NEW: Roster Panel Component - Shows expected students with join/absent status
+ */
+const RosterPanel = ({ roster, session, isLoading }) => {
+  // Don't show panel if no class association
+  if (!session?.class_id) {
+    return null;
+  }
+
+  return (
+    <Card sx={{ mb: 2 }}>
+      <CardContent>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+          <PeopleIcon sx={{ mr: 1, fontSize: 28, color: 'primary.main' }} />
+          <Typography variant="h6" sx={{ fontWeight: 600, flex: 1 }}>
+            Class Roster Attendance
+          </Typography>
+          {!isLoading && roster && (
+            <Chip
+              label={`${roster.total_joined}/${roster.total_expected} Joined`}
+              color={roster.join_rate >= 0.8 ? 'success' : roster.join_rate >= 0.5 ? 'warning' : 'error'}
+              size="small"
+            />
+          )}
+        </Box>
+
+        {/* Loading State */}
+        {isLoading ? (
+          <Box>
+            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+              <Skeleton variant="rectangular" width={100} height={24} sx={{ borderRadius: 1 }} />
+              <Skeleton variant="rectangular" width={100} height={24} sx={{ borderRadius: 1 }} />
+              <Skeleton variant="rectangular" width={120} height={24} sx={{ borderRadius: 1 }} />
+            </Box>
+            <Divider sx={{ my: 2 }} />
+            {Array.from(new Array(3)).map((_, index) => (
+              <Skeleton key={index} variant="rectangular" height={60} sx={{ mb: 1, borderRadius: 1 }} />
+            ))}
+          </Box>
+        ) : roster ? (
+          <>
+            {/* Stats Summary */}
+            <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+              <Chip
+                label={`✓ Joined: ${roster.total_joined}`}
+                color="success"
+                variant="outlined"
+                size="small"
+              />
+              <Chip
+                label={`⏳ Absent: ${roster.total_absent}`}
+                color="error"
+                variant="outlined"
+                size="small"
+              />
+              <Chip
+                label={`📊 Join Rate: ${Math.round(roster.join_rate * 100)}%`}
+                color="info"
+                variant="outlined"
+                size="small"
+              />
+            </Box>
+
+            <Divider sx={{ my: 2 }} />
+
+            {/* Student List */}
+            {roster.entries && roster.entries.length > 0 ? (
+              <List dense sx={{ maxHeight: 400, overflow: 'auto' }}>
+                {roster.entries.map((entry) => (
+            <ListItem
+              key={entry.id}
+              sx={{
+                borderRadius: 1,
+                mb: 0.5,
+                backgroundColor: entry.joined ? 'success.lighter' : 'action.hover',
+                border: 1,
+                borderColor: entry.joined ? 'success.main' : 'divider'
+              }}
+            >
+              <ListItemAvatar>
+                <Avatar
+                  sx={{
+                    bgcolor: entry.joined ? 'success.main' : 'grey.400',
+                    width: 36,
+                    height: 36
+                  }}
+                >
+                  {entry.joined ? '✓' : '⏳'}
+                </Avatar>
+              </ListItemAvatar>
+              <ListItemText
+                primary={
+                  <Typography variant="body1" sx={{ fontWeight: entry.joined ? 600 : 400 }}>
+                    {entry.student_name}
+                  </Typography>
+                }
+                secondary={
+                  <Typography variant="caption" color="text.secondary">
+                    ID: {entry.student_school_id}
+                    {entry.joined && entry.joined_at && (
+                      <> • Joined {new Date(entry.joined_at).toLocaleTimeString()}</>
+                    )}
+                  </Typography>
+                }
+              />
+              {entry.joined && (
+                <Chip
+                  label="JOINED"
+                  color="success"
+                  size="small"
+                  sx={{ fontWeight: 600 }}
+                />
+              )}
+                </ListItem>
+              ))}
+              </List>
+            ) : (
+              <Box sx={{ textAlign: 'center', py: 4 }}>
+                <PeopleIcon sx={{ fontSize: 60, color: 'text.disabled', mb: 2 }} />
+                <Typography color="text.secondary">
+                  No students found in this class
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Add students to the class to track attendance
+                </Typography>
+              </Box>
+            )}
+          </>
+        ) : (
+          <Box sx={{ textAlign: 'center', py: 4 }}>
+            <Typography color="text.secondary">
+              No roster data available
+            </Typography>
+          </Box>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+/**
+ * NEW: Outsider Panel Component - Shows students not on expected roster
+ */
+const OutsiderPanel = ({ outsiders }) => {
+  if (!outsiders || outsiders.length === 0) {
+    return null;
+  }
+
+  return (
+    <Card sx={{ mb: 2, border: 2, borderColor: 'warning.main' }}>
+      <CardContent>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, flex: 1, color: 'warning.dark' }}>
+            ⚠️ Outsider Students
+          </Typography>
+          <Chip
+            label={`${outsiders.length} Detected`}
+            color="warning"
+            size="small"
+          />
+        </Box>
+
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          These students joined but are NOT in the expected class roster.
+        </Alert>
+
+        <List dense>
+          {outsiders.map((outsider) => (
+            <ListItem
+              key={outsider.id}
+              sx={{
+                borderRadius: 1,
+                mb: 0.5,
+                backgroundColor: 'warning.lighter',
+                border: 1,
+                borderColor: 'warning.main'
+              }}
+            >
+              <ListItemAvatar>
+                <Avatar sx={{ bgcolor: 'warning.main', width: 36, height: 36 }}>
+                  ⚠
+                </Avatar>
+              </ListItemAvatar>
+              <ListItemText
+                primary={
+                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                    {outsider.guest_name}
+                  </Typography>
+                }
+                secondary={
+                  <Typography variant="caption" color="text.secondary">
+                    ID: {outsider.student_school_id} •{' '}
+                    {outsider.detection_reason === 'not_in_class' && 'Not in this class'}
+                    {outsider.detection_reason === 'student_not_found' && 'Student ID not found'}
+                    {outsider.detection_reason === 'no_class_set' && 'No class set for quiz'}
+                  </Typography>
+                }
+              />
+            </ListItem>
+          ))}
+        </List>
+      </CardContent>
+    </Card>
+  );
+};
+
+/**
  * Leaderboard Component
  */
 const Leaderboard = ({ participants }) => {
@@ -144,6 +350,11 @@ const QuizHost = () => {
   const [answersReceived, setAnswersReceived] = useState(0);
   const [wsConnected, setWsConnected] = useState(false);
 
+  // NEW: Roster tracking state
+  const [roster, setRoster] = useState(null);
+  const [outsiders, setOutsiders] = useState([]);
+  const [isLoadingRoster, setIsLoadingRoster] = useState(false);
+
   // FIX Issue 2: Auto-advance state - DEFAULT TO TRUE so scheduler is enabled
   const [autoAdvanceEnabled, setAutoAdvanceEnabled] = useState(true);
   const [cooldownSeconds, setCooldownSeconds] = useState(10);
@@ -225,12 +436,57 @@ const QuizHost = () => {
       // FIX: Extract entries array from LeaderboardResponse object
       setLeaderboard(leaderboardData.entries || []);
 
+      // NEW: Load roster if session has class_id
+      if (sessionData.class_id) {
+        console.log('[QuizHost] Session has class_id, loading roster...');
+        await loadRosterData(sessionId);
+      }
+
       setError(null);
     } catch (err) {
       console.error("Failed to load session:", err);
       setError(err.message || "Failed to load quiz session.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // NEW: Load roster data for class-based sessions
+  const loadRosterData = async (sid) => {
+    setIsLoadingRoster(true);
+    try {
+      console.log('[QuizHost] Fetching roster for session:', sid);
+      const response = await fetch(`/api/quiz-sessions/${sid}/roster`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        }
+      });
+
+      if (response.ok) {
+        const rosterData = await response.json();
+        console.log('[QuizHost] Roster loaded:', rosterData);
+        setRoster(rosterData);
+      } else {
+        console.warn('[QuizHost] Failed to load roster:', response.status);
+      }
+
+      // Load outsiders
+      const outsidersResponse = await fetch(`/api/quiz-sessions/${sid}/outsiders`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        }
+      });
+
+      if (outsidersResponse.ok) {
+        const outsidersData = await outsidersResponse.json();
+        console.log('[QuizHost] Outsiders loaded:', outsidersData);
+        setOutsiders(outsidersData.records || []);
+      }
+    } catch (err) {
+      console.error('[QuizHost] Error loading roster:', err);
+      // Don't show error to user - roster is optional
+    } finally {
+      setIsLoadingRoster(false);
     }
   };
 
@@ -315,6 +571,23 @@ const QuizHost = () => {
       case 'leaderboard_update':
         // Update leaderboard
         setLeaderboard(message.leaderboard || []);
+        break;
+
+      // NEW: Roster tracking WebSocket handlers
+      case 'roster_updated':
+        // Real-time roster update when student joins
+        console.log('[QuizHost] Roster updated:', message.roster);
+        if (session?.class_id) {
+          loadRosterData(sessionId); // Refresh roster data
+        }
+        break;
+
+      case 'outsider_detected':
+        // Real-time outsider alert
+        console.log('[QuizHost] Outsider detected:', message.outsider);
+        if (session?.class_id) {
+          loadRosterData(sessionId); // Refresh to get updated outsiders list
+        }
         break;
 
       case 'question_started':
@@ -867,8 +1140,19 @@ const QuizHost = () => {
           </Card>
         </Grid>
 
-        {/* Right Column - Leaderboard */}
+        {/* Right Column - Roster, Outsiders, and Leaderboard */}
         <Grid item xs={12} md={8}>
+          {/* NEW: Roster Panel - Show if quiz is linked to a class */}
+          {session?.class_id && (
+            <RosterPanel roster={roster} session={session} isLoading={isLoadingRoster} />
+          )}
+
+          {/* NEW: Outsider Panel - Show if there are outsider students */}
+          {session?.class_id && outsiders && outsiders.length > 0 && (
+            <OutsiderPanel outsiders={outsiders} />
+          )}
+
+          {/* Leaderboard Card */}
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
