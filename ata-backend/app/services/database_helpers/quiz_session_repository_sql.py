@@ -23,9 +23,10 @@ from datetime import datetime, timedelta, timezone
 
 # Import SQLAlchemy models
 from app.db.models.quiz_models import (
-    Quiz, QuizQuestion, QuizSession, QuizParticipant, QuizResponse
+    Quiz, QuizQuestion, QuizSession, QuizParticipant, QuizResponse,
+    QuizSessionRoster, QuizOutsiderStudent
 )
-from app.db.models.class_student_models import Student
+from app.db.models.class_student_models import Student, Class, StudentClassMembership
 
 
 class QuizSessionRepositorySQL:
@@ -744,3 +745,260 @@ class QuizSessionRepositorySQL:
             "incorrect": total - correct,
             "accuracy_rate": correct / total if total > 0 else 0.0
         }
+
+    # ==================== ROSTER TRACKING OPERATIONS ====================
+
+    def create_roster_entry(self, roster_data: Dict) -> QuizSessionRoster:
+        """
+        Create a new roster entry (expected student).
+
+        Args:
+            roster_data: Dictionary with roster fields (session_id, student_id, student_name, student_school_id)
+
+        Returns:
+            Created QuizSessionRoster instance
+
+        Usage: Called when creating roster snapshot from class membership
+        """
+        new_roster_entry = QuizSessionRoster(**roster_data)
+        self.db.add(new_roster_entry)
+        self.db.commit()
+        self.db.refresh(new_roster_entry)
+        return new_roster_entry
+
+    def create_roster_entries_bulk(self, roster_entries: List[Dict]) -> List[QuizSessionRoster]:
+        """
+        Create multiple roster entries in a single transaction.
+
+        Args:
+            roster_entries: List of roster entry dictionaries
+
+        Returns:
+            List of created QuizSessionRoster instances
+
+        Usage: Efficient batch creation when syncing class roster to session
+        """
+        roster_objects = [QuizSessionRoster(**entry) for entry in roster_entries]
+        self.db.add_all(roster_objects)
+        self.db.commit()
+        for obj in roster_objects:
+            self.db.refresh(obj)
+        return roster_objects
+
+    def get_roster_by_session(self, session_id: str) -> List[QuizSessionRoster]:
+        """
+        Get all roster entries for a session.
+
+        Args:
+            session_id: Session ID
+
+        Returns:
+            List of QuizSessionRoster instances ordered by student_name
+
+        Usage: Display expected students list to teacher
+        """
+        return (
+            self.db.query(QuizSessionRoster)
+            .filter(QuizSessionRoster.session_id == session_id)
+            .order_by(QuizSessionRoster.student_name)
+            .all()
+        )
+
+    def get_roster_entry_by_student(
+        self, session_id: str, student_id: str
+    ) -> Optional[QuizSessionRoster]:
+        """
+        Get a specific roster entry for a student in a session.
+
+        Args:
+            session_id: Session ID
+            student_id: Student ID from students table
+
+        Returns:
+            QuizSessionRoster instance or None if not found
+
+        Usage: Check if student was expected when they join
+        """
+        return (
+            self.db.query(QuizSessionRoster)
+            .filter(
+                QuizSessionRoster.session_id == session_id,
+                QuizSessionRoster.student_id == student_id
+            )
+            .first()
+        )
+
+    def update_roster_entry_joined(
+        self, roster_entry_id: str, participant_id: str, joined_at: datetime
+    ) -> Optional[QuizSessionRoster]:
+        """
+        Mark a roster entry as joined and link to participant.
+
+        Args:
+            roster_entry_id: Roster entry ID
+            participant_id: Participant ID who joined
+            joined_at: Timestamp when student joined
+
+        Returns:
+            Updated QuizSessionRoster instance or None if not found
+
+        Usage: Called when expected student joins session
+        """
+        roster_entry = self.db.query(QuizSessionRoster).filter(
+            QuizSessionRoster.id == roster_entry_id
+        ).first()
+
+        if roster_entry:
+            roster_entry.joined = True
+            roster_entry.joined_at = joined_at
+            roster_entry.participant_id = participant_id
+            self.db.commit()
+            self.db.refresh(roster_entry)
+
+        return roster_entry
+
+    def get_roster_attendance_stats(self, session_id: str) -> Dict:
+        """
+        Get attendance statistics for a session's roster.
+
+        Args:
+            session_id: Session ID
+
+        Returns:
+            Dictionary with {total_expected, total_joined, total_absent, join_rate}
+
+        Usage: Display attendance summary to teacher
+        """
+        total_expected = (
+            self.db.query(func.count(QuizSessionRoster.id))
+            .filter(QuizSessionRoster.session_id == session_id)
+            .scalar() or 0
+        )
+
+        total_joined = (
+            self.db.query(func.count(QuizSessionRoster.id))
+            .filter(
+                QuizSessionRoster.session_id == session_id,
+                QuizSessionRoster.joined == True
+            )
+            .scalar() or 0
+        )
+
+        join_rate = total_joined / total_expected if total_expected > 0 else 0.0
+
+        return {
+            "total_expected": total_expected,
+            "total_joined": total_joined,
+            "total_absent": total_expected - total_joined,
+            "join_rate": join_rate
+        }
+
+    # ==================== OUTSIDER STUDENT OPERATIONS ====================
+
+    def create_outsider_record(self, outsider_data: Dict) -> QuizOutsiderStudent:
+        """
+        Create a new outsider student record.
+
+        Args:
+            outsider_data: Dictionary with outsider fields (session_id, participant_id, student_school_id, guest_name, detection_reason)
+
+        Returns:
+            Created QuizOutsiderStudent instance
+
+        Usage: Called when student joins but isn't on expected roster
+        """
+        new_outsider = QuizOutsiderStudent(**outsider_data)
+        self.db.add(new_outsider)
+        self.db.commit()
+        self.db.refresh(new_outsider)
+        return new_outsider
+
+    def get_outsiders_by_session(self, session_id: str) -> List[QuizOutsiderStudent]:
+        """
+        Get all outsider students for a session.
+
+        Args:
+            session_id: Session ID
+
+        Returns:
+            List of QuizOutsiderStudent instances
+
+        Usage: Display outsider list to teacher for review
+        """
+        return (
+            self.db.query(QuizOutsiderStudent)
+            .filter(QuizOutsiderStudent.session_id == session_id)
+            .order_by(QuizOutsiderStudent.created_at)
+            .all()
+        )
+
+    def get_outsider_by_participant(
+        self, session_id: str, participant_id: str
+    ) -> Optional[QuizOutsiderStudent]:
+        """
+        Get outsider record for a specific participant.
+
+        Args:
+            session_id: Session ID
+            participant_id: Participant ID
+
+        Returns:
+            QuizOutsiderStudent instance or None if not found
+
+        Usage: Check if participant is an outsider
+        """
+        return (
+            self.db.query(QuizOutsiderStudent)
+            .filter(
+                QuizOutsiderStudent.session_id == session_id,
+                QuizOutsiderStudent.participant_id == participant_id
+            )
+            .first()
+        )
+
+    def flag_outsider_by_teacher(
+        self, outsider_id: str, flagged: bool, teacher_notes: Optional[str] = None
+    ) -> Optional[QuizOutsiderStudent]:
+        """
+        Flag or unflag an outsider student for teacher review.
+
+        Args:
+            outsider_id: Outsider record ID
+            flagged: Whether to flag the outsider
+            teacher_notes: Optional notes from teacher
+
+        Returns:
+            Updated QuizOutsiderStudent instance or None if not found
+
+        Usage: Teacher reviews and marks suspicious outsiders
+        """
+        outsider = self.db.query(QuizOutsiderStudent).filter(
+            QuizOutsiderStudent.id == outsider_id
+        ).first()
+
+        if outsider:
+            outsider.flagged_by_teacher = flagged
+            if teacher_notes is not None:
+                outsider.teacher_notes = teacher_notes
+            self.db.commit()
+            self.db.refresh(outsider)
+
+        return outsider
+
+    def get_outsider_count(self, session_id: str) -> int:
+        """
+        Get count of outsider students in a session.
+
+        Args:
+            session_id: Session ID
+
+        Returns:
+            Number of outsider students
+
+        Usage: Quick stats for session dashboard
+        """
+        return (
+            self.db.query(func.count(QuizOutsiderStudent.id))
+            .filter(QuizOutsiderStudent.session_id == session_id)
+            .scalar() or 0
+        )

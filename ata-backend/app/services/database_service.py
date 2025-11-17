@@ -447,6 +447,61 @@ class DatabaseService:
         """Get correctness stats for a question."""
         return self.quiz_session_repo.get_question_correctness_stats(question_id)
 
+    # --- Roster Tracking Methods ---
+    def create_roster_entry(self, roster_data: Dict):
+        """Create a roster entry."""
+        return self.quiz_session_repo.create_roster_entry(roster_data)
+
+    def create_roster_entries_bulk(self, roster_entries: List[Dict]):
+        """Create multiple roster entries in bulk."""
+        return self.quiz_session_repo.create_roster_entries_bulk(roster_entries)
+
+    def get_roster_by_session(self, session_id: str):
+        """Get all roster entries for a session."""
+        return self.quiz_session_repo.get_roster_by_session(session_id)
+
+    def get_roster_entry_by_student(self, session_id: str, student_id: str):
+        """Get roster entry for a student in a session."""
+        return self.quiz_session_repo.get_roster_entry_by_student(session_id, student_id)
+
+    def update_roster_entry_joined(self, roster_entry_id: str, participant_id: str, joined_at):
+        """Mark roster entry as joined."""
+        return self.quiz_session_repo.update_roster_entry_joined(roster_entry_id, participant_id, joined_at)
+
+    def get_roster_attendance_stats(self, session_id: str) -> Dict:
+        """Get attendance statistics for session roster."""
+        return self.quiz_session_repo.get_roster_attendance_stats(session_id)
+
+    # --- Outsider Student Methods ---
+    def create_outsider_record(self, outsider_data: Dict):
+        """Create an outsider student record."""
+        return self.quiz_session_repo.create_outsider_record(outsider_data)
+
+    def get_outsiders_by_session(self, session_id: str):
+        """Get all outsider students for a session."""
+        return self.quiz_session_repo.get_outsiders_by_session(session_id)
+
+    def get_outsider_by_participant(self, session_id: str, participant_id: str):
+        """Get outsider record for a participant."""
+        return self.quiz_session_repo.get_outsider_by_participant(session_id, participant_id)
+
+    def flag_outsider_by_teacher(self, outsider_id: str, flagged: bool, teacher_notes: Optional[str] = None):
+        """Flag or unflag an outsider student."""
+        return self.quiz_session_repo.flag_outsider_by_teacher(outsider_id, flagged, teacher_notes)
+
+    def get_outsider_count(self, session_id: str) -> int:
+        """Get count of outsider students."""
+        return self.quiz_session_repo.get_outsider_count(session_id)
+
+    # --- Class Roster Helper Methods ---
+    def is_student_in_class(self, student_id: str, class_id: str) -> bool:
+        """Check if a student is enrolled in a specific class."""
+        return self.class_student_repo.is_student_in_class(student_id, class_id)
+
+    def get_students_by_class_with_details(self, class_id: str, user_id: str) -> List[Dict]:
+        """Get all students in a class with full details."""
+        return self.class_student_repo.get_students_by_class_with_details(class_id, user_id)
+
 # --- SIMPLIFIED DEPENDENCY PROVIDER ---
 def get_db_service(db: Session = Depends(get_db)) -> Generator[DatabaseService, None, None]:
     """

@@ -316,3 +316,52 @@ class ClassStudentRepositorySQL:
         self.db.delete(membership)
         self.db.commit()
         return True
+
+    def is_student_in_class(self, student_id: str, class_id: str) -> bool:
+        """
+        Check if a student is enrolled in a specific class.
+
+        Args:
+            student_id: Student ID (primary key from students table)
+            class_id: Class ID (primary key from classes table)
+
+        Returns:
+            True if student is enrolled, False otherwise
+
+        Usage: Called when validating quiz join - check if student is on roster
+        """
+        from app.db.models.class_student_models import StudentClassMembership
+
+        membership = (
+            self.db.query(StudentClassMembership)
+            .filter_by(student_id=student_id, class_id=class_id)
+            .first()
+        )
+
+        return membership is not None
+
+    def get_students_by_class_with_details(self, class_id: str, user_id: str) -> List[Dict]:
+        """
+        Get all students in a class with full details (for roster creation).
+
+        Args:
+            class_id: Class ID
+            user_id: User ID (for ownership verification)
+
+        Returns:
+            List of dictionaries with student details (id, name, studentId)
+
+        Usage: Called when creating roster snapshot for quiz session
+        """
+        students = self.get_students_by_class_id(class_id, user_id)
+
+        return [
+            {
+                "id": student.id,
+                "name": student.name,
+                "studentId": student.studentId,
+                "overallGrade": student.overallGrade,
+                "performance_summary": student.performance_summary
+            }
+            for student in students
+        ]
