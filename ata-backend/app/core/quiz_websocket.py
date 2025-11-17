@@ -66,6 +66,11 @@ class MessageType:
     PARTICIPANT_LEFT = "participant_left"
     PARTICIPANT_ANSWERED = "participant_answered"
 
+    # NEW: Roster tracking events
+    ROSTER_UPDATED = "roster_updated"
+    OUTSIDER_DETECTED = "outsider_detected"
+    ATTENDANCE_SUMMARY = "attendance_summary"
+
     # Leaderboard updates
     LEADERBOARD_UPDATE = "leaderboard_update"
 
@@ -523,6 +528,106 @@ def build_error_message(error_code: str, error_message: str) -> Dict:
         "error": {
             "code": error_code,
             "message": error_message
+        },
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
+
+# ==================== ROSTER TRACKING MESSAGE BUILDERS ====================
+
+def build_roster_updated_message(roster_summary: Dict) -> Dict:
+    """
+    Build roster updated message for real-time attendance tracking.
+
+    Args:
+        roster_summary: Dictionary with roster statistics:
+            - total_expected: int
+            - total_joined: int
+            - total_absent: int
+            - join_rate: float
+            - entries: List[Dict] (optional, for detailed view)
+
+    Returns:
+        WebSocket message with roster update data
+
+    Usage:
+        Called when a student on roster joins the session.
+        Broadcasts to host to update attendance UI in real-time.
+    """
+    return {
+        "type": MessageType.ROSTER_UPDATED,
+        "roster": {
+            "total_expected": roster_summary.get("total_expected", 0),
+            "total_joined": roster_summary.get("total_joined", 0),
+            "total_absent": roster_summary.get("total_absent", 0),
+            "join_rate": roster_summary.get("join_rate", 0.0)
+        },
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
+
+def build_outsider_detected_message(outsider_record: Dict) -> Dict:
+    """
+    Build outsider detected message for teacher alerts.
+
+    Args:
+        outsider_record: Dictionary with outsider student data:
+            - id: str
+            - student_school_id: str
+            - guest_name: str
+            - detection_reason: str
+            - participant_id: str
+            - created_at: datetime
+
+    Returns:
+        WebSocket message with outsider alert data
+
+    Usage:
+        Called when a student joins but isn't on expected roster.
+        Broadcasts to host to alert teacher of unexpected participant.
+    """
+    return {
+        "type": MessageType.OUTSIDER_DETECTED,
+        "outsider": {
+            "id": outsider_record.get("id"),
+            "student_school_id": outsider_record.get("student_school_id"),
+            "guest_name": outsider_record.get("guest_name"),
+            "detection_reason": outsider_record.get("detection_reason"),
+            "participant_id": outsider_record.get("participant_id")
+        },
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
+
+def build_attendance_summary_message(attendance_data: Dict) -> Dict:
+    """
+    Build attendance summary message with complete attendance overview.
+
+    Args:
+        attendance_data: Dictionary with full attendance data:
+            - session_id: str
+            - class_id: Optional[str]
+            - roster_summary: Optional[Dict] (if class-based)
+            - outsider_summary: Dict
+            - total_participants: int
+            - active_participants: int
+
+    Returns:
+        WebSocket message with comprehensive attendance data
+
+    Usage:
+        Called when host requests attendance dashboard.
+        Can be broadcast periodically or on-demand.
+    """
+    return {
+        "type": MessageType.ATTENDANCE_SUMMARY,
+        "attendance": {
+            "session_id": attendance_data.get("session_id"),
+            "class_id": attendance_data.get("class_id"),
+            "total_participants": attendance_data.get("total_participants", 0),
+            "active_participants": attendance_data.get("active_participants", 0),
+            "has_roster": attendance_data.get("roster_summary") is not None,
+            "total_outsiders": attendance_data.get("outsider_summary", {}).get("total_outsiders", 0)
         },
         "timestamp": datetime.utcnow().isoformat()
     }

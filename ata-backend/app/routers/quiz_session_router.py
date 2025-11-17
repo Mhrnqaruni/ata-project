@@ -37,7 +37,9 @@ from ..db.models.user_model import User as UserModel
 from ..core.quiz_websocket import (
     connection_manager,
     build_session_started_message,
-    build_question_started_message
+    build_question_started_message,
+    build_roster_updated_message,
+    build_outsider_detected_message
 )
 
 router = APIRouter()
@@ -986,7 +988,7 @@ def sync_session_roster(
 # ==================== PARTICIPANT ENDPOINTS (Public/Guest Token) ====================
 
 @router.post("/join", response_model=quiz_model.ParticipantJoinResponse, summary="Join Session")
-def join_session(
+async def join_session(
     join_data: quiz_model.ParticipantJoinRequest,
     db: DatabaseService = Depends(get_db_service)
 ):
@@ -1025,6 +1027,32 @@ def join_session(
 
             session = db.get_quiz_session_by_id(participant.session_id)
             quiz = db.get_quiz_by_id(session.quiz_id, session.user_id) if session else None
+
+            # NEW: Broadcast roster/outsider updates to host via WebSocket
+            if session and session.class_id:
+                try:
+                    # If student is on roster, broadcast roster update
+                    if not participant.is_outsider and participant.roster_entry_id:
+                        roster_stats = db.get_roster_attendance_stats(session.id)
+                        roster_message = build_roster_updated_message(roster_stats)
+                        await connection_manager.broadcast_to_room(session.id, roster_message)
+
+                    # If student is outsider, broadcast outsider alert
+                    elif participant.is_outsider:
+                        outsider = db.get_outsider_by_participant(session.id, participant.id)
+                        if outsider:
+                            outsider_message = build_outsider_detected_message({
+                                "id": outsider.id,
+                                "student_school_id": outsider.student_school_id,
+                                "guest_name": outsider.guest_name,
+                                "detection_reason": outsider.detection_reason,
+                                "participant_id": outsider.participant_id
+                            })
+                            await connection_manager.broadcast_to_room(session.id, outsider_message)
+                except Exception as ws_error:
+                    # Log but don't fail the join if WebSocket broadcast fails
+                    import logging
+                    logging.warning(f"Failed to broadcast roster update: {ws_error}")
 
             # FIX: Return nested objects for frontend compatibility
             return {
