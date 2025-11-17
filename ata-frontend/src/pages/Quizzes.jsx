@@ -39,6 +39,7 @@ import AssessmentIcon from '@mui/icons-material/Assessment';
 
 // --- Service Import for Backend Communication ---
 import quizService from '../services/quizService';
+import classService from '../services/classService';
 
 /**
  * Empty state component for when no quizzes exist
@@ -133,6 +134,15 @@ const QuizCard = ({ quiz, onEdit, onDuplicate, onDelete, onStartSession, onPubli
             size="small"
             variant="outlined"
           />
+          {/* NEW: Display class association if quiz is linked to a class */}
+          {quiz.class_name && (
+            <Chip
+              label={`📚 ${quiz.class_name}`}
+              size="small"
+              variant="outlined"
+              color="primary"
+            />
+          )}
         </Box>
 
         <Typography variant="caption" color="text.secondary">
@@ -226,6 +236,10 @@ const Quizzes = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // NEW: Classes for mapping class_id to class_name
+  const [classes, setClasses] = useState([]);
+  const [classMap, setClassMap] = useState({});
+
   // Delete confirmation dialog
   const [deleteDialog, setDeleteDialog] = useState({ open: false, quizId: null });
 
@@ -236,11 +250,42 @@ const Quizzes = () => {
     newTitle: ''
   });
 
+  // NEW: Fetch classes for mapping class_id to class_name
+  useEffect(() => {
+    const loadClasses = async () => {
+      try {
+        const fetchedClasses = await classService.getAllClasses();
+        setClasses(fetchedClasses || []);
+
+        // Create a map for quick lookup: class_id -> class_name
+        const map = {};
+        (fetchedClasses || []).forEach(cls => {
+          map[cls.id] = cls.name;
+        });
+        setClassMap(map);
+        console.log('[Quizzes] Loaded classes:', fetchedClasses.length);
+      } catch (err) {
+        console.error('[Quizzes] Failed to load classes:', err);
+        // Don't show error - class display is non-critical
+        setClasses([]);
+        setClassMap({});
+      }
+    };
+    loadClasses();
+  }, []);
+
   const fetchQuizzes = useCallback(async () => {
     try {
       setIsLoading(true);
       const data = await quizService.getAllQuizzes();
-      setQuizzes(data);
+
+      // NEW: Enrich quiz data with class names
+      const enrichedQuizzes = data.map(quiz => ({
+        ...quiz,
+        class_name: quiz.class_id ? classMap[quiz.class_id] : null
+      }));
+
+      setQuizzes(enrichedQuizzes);
       setError(null);
     } catch (err) {
       console.error("Failed to fetch quizzes:", err);
@@ -248,11 +293,14 @@ const Quizzes = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [classMap]);
 
   useEffect(() => {
-    fetchQuizzes();
-  }, [fetchQuizzes]);
+    // Only fetch quizzes after classMap is populated (or empty)
+    if (Object.keys(classMap).length >= 0) {
+      fetchQuizzes();
+    }
+  }, [classMap]);
 
   const handleCreateQuiz = () => {
     navigate('/quizzes/new');
