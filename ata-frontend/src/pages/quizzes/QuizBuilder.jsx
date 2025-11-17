@@ -45,6 +45,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
 // --- Service Import ---
 import quizService from '../../services/quizService';
+import classService from '../../services/classService';
 
 /**
  * Question type options
@@ -386,6 +387,11 @@ const QuizBuilder = () => {
     allow_review: true
   });
 
+  // NEW: Class selection for roster tracking
+  const [classes, setClasses] = useState([]);
+  const [selectedClassId, setSelectedClassId] = useState('');
+  const [isLoadingClasses, setIsLoadingClasses] = useState(false);
+
   // Questions
   const [questions, setQuestions] = useState([
     {
@@ -401,12 +407,32 @@ const QuizBuilder = () => {
 
   const [publishDialog, setPublishDialog] = useState(false);
 
+  // NEW: Fetch classes on component mount
+  useEffect(() => {
+    loadClasses();
+  }, []);
+
   // Load quiz if editing
   useEffect(() => {
     if (isEditMode) {
       loadQuiz();
     }
   }, [quizId]);
+
+  const loadClasses = async () => {
+    try {
+      setIsLoadingClasses(true);
+      const fetchedClasses = await classService.getAllClasses();
+      setClasses(fetchedClasses || []);
+      console.log('[QuizBuilder] Loaded classes:', fetchedClasses.length);
+    } catch (err) {
+      console.error('[QuizBuilder] Failed to load classes:', err);
+      // Don't show error to user - class selection is optional
+      setClasses([]);
+    } finally {
+      setIsLoadingClasses(false);
+    }
+  };
 
   const loadQuiz = async () => {
     try {
@@ -415,6 +441,7 @@ const QuizBuilder = () => {
       setQuizTitle(quiz.title);
       setQuizDescription(quiz.description || '');
       setQuizSettings(quiz.settings || quizSettings);
+      setSelectedClassId(quiz.class_id || ''); // NEW: Load class_id
       if (quiz.questions && quiz.questions.length > 0) {
         setQuestions(quiz.questions.sort((a, b) => a.order_index - b.order_index));
       }
@@ -519,6 +546,7 @@ const QuizBuilder = () => {
         title: quizTitle,
         description: quizDescription,
         settings: quizSettings,
+        class_id: selectedClassId || null, // NEW: Include class_id for roster tracking
         questions: questions.map((q, index) => ({
           ...q,
           order_index: index,
@@ -667,7 +695,35 @@ const QuizBuilder = () => {
             value={quizDescription}
             onChange={(e) => setQuizDescription(e.target.value)}
             placeholder="Describe what this quiz is about..."
+            sx={{ mb: 3 }}
           />
+
+          {/* NEW: Class Selection for Roster Tracking */}
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel>Class (Optional - for student roster tracking)</InputLabel>
+            <Select
+              value={selectedClassId}
+              label="Class (Optional - for student roster tracking)"
+              onChange={(e) => setSelectedClassId(e.target.value)}
+              disabled={isLoadingClasses}
+            >
+              <MenuItem value="">
+                <em>No Class (All Students Can Join)</em>
+              </MenuItem>
+              {classes.map((cls) => (
+                <MenuItem key={cls.id} value={cls.id}>
+                  {cls.name} ({cls.student_count || 0} students)
+                </MenuItem>
+              ))}
+            </Select>
+            {selectedClassId && (
+              <Typography variant="caption" sx={{ mt: 1, color: 'text.secondary' }}>
+                ✓ Roster tracking enabled: Expected students will be pre-populated when you start a session.
+                Outsider students (not in this class) will be automatically detected and flagged.
+              </Typography>
+            )}
+          </FormControl>
+
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
             <Button variant="contained" onClick={() => setActiveStep(1)}>
               Next: Add Questions
