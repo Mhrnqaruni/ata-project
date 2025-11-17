@@ -296,6 +296,7 @@ class QuizSessionSummary(BaseSchema):
     started_at: Optional[datetime] = None
     ended_at: Optional[datetime] = None
     created_at: datetime
+    class_id: Optional[str] = Field(None, description="Associated class ID if this session is for a specific class")
 
 
 class QuizSessionDetail(BaseSchema):
@@ -315,6 +316,7 @@ class QuizSessionDetail(BaseSchema):
     created_at: datetime
     participant_count: int = 0
     questions: List[QuizQuestionAdminResponse] = Field(default_factory=list)
+    class_id: Optional[str] = Field(None, description="Associated class ID if this session is for a specific class")
 
 
 # ==================== PARTICIPANT SCHEMAS ====================
@@ -372,6 +374,8 @@ class ParticipantSummary(BaseSchema):
     total_time_ms: int
     is_active: bool
     joined_at: datetime
+    is_outsider: bool = Field(default=False, description="True if student joined but wasn't on expected roster")
+    roster_entry_id: Optional[str] = Field(None, description="Link to roster entry if participant was expected")
 
 
 class ParticipantDetail(ParticipantSummary):
@@ -423,6 +427,79 @@ class AnswerResult(BaseSchema):
 class AnswerSubmissionBatch(BaseSchema):
     """Schema for submitting multiple answers at once (future feature)."""
     answers: List[AnswerSubmission]
+
+
+# ==================== ROSTER TRACKING SCHEMAS ====================
+
+class QuizSessionRosterEntry(BaseSchema):
+    """Schema for a single roster entry (expected student)."""
+    id: str
+    session_id: str
+    student_id: str
+    student_name: str
+    student_school_id: str
+    enrollment_status: str = Field(..., description="expected, added, or dropped")
+    joined: bool
+    joined_at: Optional[datetime] = None
+    participant_id: Optional[str] = None
+    created_at: datetime
+
+
+class QuizSessionRosterSummary(BaseSchema):
+    """Schema for roster summary with statistics."""
+    total_expected: int = Field(..., description="Total students expected from class")
+    total_joined: int = Field(..., description="Number who actually joined")
+    total_absent: int = Field(..., description="Number who didn't join")
+    join_rate: float = Field(..., ge=0.0, le=1.0, description="Percentage who joined (0-1)")
+    entries: List[QuizSessionRosterEntry] = Field(default_factory=list, description="Individual roster entries")
+
+
+class QuizOutsiderStudentRecord(BaseSchema):
+    """Schema for an outsider student record."""
+    id: str
+    session_id: str
+    student_school_id: str
+    guest_name: str
+    participant_id: str
+    detection_reason: str = Field(..., description="Reason: not_in_class, no_class_set, student_not_found")
+    flagged_by_teacher: bool
+    teacher_notes: Optional[str] = None
+    created_at: datetime
+
+
+class OutsiderStudentSummary(BaseSchema):
+    """Schema for outsider students summary."""
+    total_outsiders: int = Field(..., description="Total number of outsider students")
+    records: List[QuizOutsiderStudentRecord] = Field(default_factory=list, description="Individual outsider records")
+
+
+class ParticipantWithStatus(BaseSchema):
+    """Schema for participant with roster/outsider status."""
+    participant_id: str
+    display_name: str
+    student_school_id: Optional[str] = None
+    is_outsider: bool
+    is_on_roster: bool
+    joined_at: datetime
+    score: int
+    correct_answers: int
+
+
+class SessionAttendanceSummary(BaseSchema):
+    """Schema for complete attendance overview of a session."""
+    session_id: str
+    class_id: Optional[str] = None
+    class_name: Optional[str] = None
+
+    # Roster metrics (only present if session has class_id)
+    roster_summary: Optional[QuizSessionRosterSummary] = None
+
+    # Outsider metrics
+    outsider_summary: OutsiderStudentSummary
+
+    # Combined metrics
+    total_participants: int
+    active_participants: int
 
 
 # ==================== ANALYTICS SCHEMAS ====================
