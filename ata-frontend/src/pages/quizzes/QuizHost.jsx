@@ -31,7 +31,9 @@ import {
   Fade,
   Switch,
   FormControlLabel,
-  TextField
+  TextField,
+  Skeleton,
+  Collapse
 } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
@@ -44,6 +46,10 @@ import BarChartIcon from '@mui/icons-material/BarChart';
 import CloseIcon from '@mui/icons-material/Close';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import TimerIcon from '@mui/icons-material/Timer';
+import FlagIcon from '@mui/icons-material/Flag';
+import FlagOutlinedIcon from '@mui/icons-material/FlagOutlined';
+import NoteAddIcon from '@mui/icons-material/NoteAdd';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 
 // --- Service Import ---
 import quizService from '../../services/quizService';
@@ -192,68 +198,261 @@ const RosterPanel = ({ roster, session, isLoading }) => {
 };
 
 /**
- * NEW: Outsider Panel Component - Shows students not on expected roster
+ * NEW: Outsider Panel Component - Shows students not on expected roster with management features
  */
-const OutsiderPanel = ({ outsiders }) => {
+const OutsiderPanel = ({ outsiders, sessionId, onOutsiderUpdate }) => {
+  const [notesDialog, setNotesDialog] = useState({ open: false, outsider: null });
+  const [notesText, setNotesText] = useState('');
+  const [flaggingId, setFlaggingId] = useState(null);
+  const [expandedNotes, setExpandedNotes] = useState({});
+
   if (!outsiders || outsiders.length === 0) {
     return null;
   }
 
+  const handleFlagToggle = async (outsider) => {
+    setFlaggingId(outsider.id);
+    try {
+      const newFlaggedStatus = !outsider.flagged_by_teacher;
+
+      const response = await fetch(`/api/quiz-sessions/${sessionId}/outsiders/${outsider.id}/flag`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        },
+        body: JSON.stringify({
+          flagged: newFlaggedStatus,
+          teacher_notes: outsider.teacher_notes || null
+        })
+      });
+
+      if (response.ok) {
+        console.log('[OutsiderPanel] Outsider flagged successfully');
+        // Trigger parent refresh
+        if (onOutsiderUpdate) {
+          onOutsiderUpdate();
+        }
+      } else {
+        console.error('[OutsiderPanel] Failed to flag outsider:', response.status);
+      }
+    } catch (err) {
+      console.error('[OutsiderPanel] Error flagging outsider:', err);
+    } finally {
+      setFlaggingId(null);
+    }
+  };
+
+  const handleOpenNotesDialog = (outsider) => {
+    setNotesDialog({ open: true, outsider });
+    setNotesText(outsider.teacher_notes || '');
+  };
+
+  const handleCloseNotesDialog = () => {
+    setNotesDialog({ open: false, outsider: null });
+    setNotesText('');
+  };
+
+  const handleSaveNotes = async () => {
+    const outsider = notesDialog.outsider;
+    if (!outsider) return;
+
+    try {
+      const response = await fetch(`/api/quiz-sessions/${sessionId}/outsiders/${outsider.id}/flag`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        },
+        body: JSON.stringify({
+          flagged: outsider.flagged_by_teacher,
+          teacher_notes: notesText
+        })
+      });
+
+      if (response.ok) {
+        console.log('[OutsiderPanel] Notes saved successfully');
+        handleCloseNotesDialog();
+        // Trigger parent refresh
+        if (onOutsiderUpdate) {
+          onOutsiderUpdate();
+        }
+      } else {
+        console.error('[OutsiderPanel] Failed to save notes:', response.status);
+      }
+    } catch (err) {
+      console.error('[OutsiderPanel] Error saving notes:', err);
+    }
+  };
+
+  const toggleExpandNotes = (outsiderId) => {
+    setExpandedNotes(prev => ({
+      ...prev,
+      [outsiderId]: !prev[outsiderId]
+    }));
+  };
+
+  const flaggedCount = outsiders.filter(o => o.flagged_by_teacher).length;
+
   return (
-    <Card sx={{ mb: 2, border: 2, borderColor: 'warning.main' }}>
-      <CardContent>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, flex: 1, color: 'warning.dark' }}>
-            ⚠️ Outsider Students
-          </Typography>
-          <Chip
-            label={`${outsiders.length} Detected`}
-            color="warning"
-            size="small"
-          />
-        </Box>
-
-        <Alert severity="warning" sx={{ mb: 2 }}>
-          These students joined but are NOT in the expected class roster.
-        </Alert>
-
-        <List dense>
-          {outsiders.map((outsider) => (
-            <ListItem
-              key={outsider.id}
-              sx={{
-                borderRadius: 1,
-                mb: 0.5,
-                backgroundColor: 'warning.lighter',
-                border: 1,
-                borderColor: 'warning.main'
-              }}
-            >
-              <ListItemAvatar>
-                <Avatar sx={{ bgcolor: 'warning.main', width: 36, height: 36 }}>
-                  ⚠
-                </Avatar>
-              </ListItemAvatar>
-              <ListItemText
-                primary={
-                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                    {outsider.guest_name}
-                  </Typography>
-                }
-                secondary={
-                  <Typography variant="caption" color="text.secondary">
-                    ID: {outsider.student_school_id} •{' '}
-                    {outsider.detection_reason === 'not_in_class' && 'Not in this class'}
-                    {outsider.detection_reason === 'student_not_found' && 'Student ID not found'}
-                    {outsider.detection_reason === 'no_class_set' && 'No class set for quiz'}
-                  </Typography>
-                }
+    <>
+      <Card sx={{ mb: 2, border: 2, borderColor: 'warning.main' }}>
+        <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, flex: 1, color: 'warning.dark' }}>
+              ⚠️ Outsider Students
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              {flaggedCount > 0 && (
+                <Chip
+                  label={`${flaggedCount} Flagged`}
+                  color="error"
+                  size="small"
+                  icon={<FlagIcon />}
+                />
+              )}
+              <Chip
+                label={`${outsiders.length} Total`}
+                color="warning"
+                size="small"
               />
-            </ListItem>
-          ))}
-        </List>
-      </CardContent>
-    </Card>
+            </Box>
+          </Box>
+
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            These students joined but are NOT in the expected class roster. Review and flag suspicious entries.
+          </Alert>
+
+          <List dense>
+            {outsiders.map((outsider) => (
+              <Box key={outsider.id}>
+                <ListItem
+                  sx={{
+                    borderRadius: 1,
+                    mb: 0.5,
+                    backgroundColor: outsider.flagged_by_teacher ? 'error.lighter' : 'warning.lighter',
+                    border: 1,
+                    borderColor: outsider.flagged_by_teacher ? 'error.main' : 'warning.main'
+                  }}
+                  secondaryAction={
+                    <Box sx={{ display: 'flex', gap: 0.5 }}>
+                      {/* Flag/Unflag Button */}
+                      <Tooltip title={outsider.flagged_by_teacher ? 'Unflag as normal' : 'Flag for review'}>
+                        <IconButton
+                          size="small"
+                          onClick={() => handleFlagToggle(outsider)}
+                          disabled={flaggingId === outsider.id}
+                          sx={{
+                            color: outsider.flagged_by_teacher ? 'error.main' : 'action.active'
+                          }}
+                        >
+                          {outsider.flagged_by_teacher ? <FlagIcon /> : <FlagOutlinedIcon />}
+                        </IconButton>
+                      </Tooltip>
+
+                      {/* Notes Button */}
+                      <Tooltip title={outsider.teacher_notes ? 'View/Edit notes' : 'Add notes'}>
+                        <IconButton
+                          size="small"
+                          onClick={() => handleOpenNotesDialog(outsider)}
+                          color={outsider.teacher_notes ? 'primary' : 'default'}
+                        >
+                          {outsider.teacher_notes ? <VisibilityIcon /> : <NoteAddIcon />}
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  }
+                >
+                  <ListItemAvatar>
+                    <Avatar
+                      sx={{
+                        bgcolor: outsider.flagged_by_teacher ? 'error.main' : 'warning.main',
+                        width: 36,
+                        height: 36
+                      }}
+                    >
+                      {outsider.flagged_by_teacher ? '🚩' : '⚠'}
+                    </Avatar>
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                          {outsider.guest_name}
+                        </Typography>
+                        {outsider.flagged_by_teacher && (
+                          <Chip label="FLAGGED" color="error" size="small" sx={{ height: 20 }} />
+                        )}
+                      </Box>
+                    }
+                    secondary={
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">
+                          ID: {outsider.student_school_id} •{' '}
+                          {outsider.detection_reason === 'not_in_class' && 'Not in this class'}
+                          {outsider.detection_reason === 'student_not_found' && 'Student ID not found'}
+                          {outsider.detection_reason === 'no_class_set' && 'No class set for quiz'}
+                        </Typography>
+                        {outsider.teacher_notes && (
+                          <Box sx={{ mt: 0.5 }}>
+                            <Button
+                              size="small"
+                              startIcon={<VisibilityIcon />}
+                              onClick={() => toggleExpandNotes(outsider.id)}
+                              sx={{ textTransform: 'none', minWidth: 0, p: 0 }}
+                            >
+                              {expandedNotes[outsider.id] ? 'Hide' : 'Show'} notes
+                            </Button>
+                            <Collapse in={expandedNotes[outsider.id]}>
+                              <Paper sx={{ p: 1, mt: 1, bgcolor: 'background.default' }}>
+                                <Typography variant="caption" sx={{ fontStyle: 'italic' }}>
+                                  {outsider.teacher_notes}
+                                </Typography>
+                              </Paper>
+                            </Collapse>
+                          </Box>
+                        )}
+                      </Box>
+                    }
+                  />
+                </ListItem>
+              </Box>
+            ))}
+          </List>
+        </CardContent>
+      </Card>
+
+      {/* Notes Dialog */}
+      <Dialog open={notesDialog.open} onClose={handleCloseNotesDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          {notesDialog.outsider?.teacher_notes ? 'Edit Notes' : 'Add Notes'}
+          {notesDialog.outsider && (
+            <Typography variant="subtitle2" color="text.secondary">
+              For: {notesDialog.outsider.guest_name} ({notesDialog.outsider.student_school_id})
+            </Typography>
+          )}
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            fullWidth
+            multiline
+            rows={4}
+            label="Teacher Notes"
+            value={notesText}
+            onChange={(e) => setNotesText(e.target.value)}
+            placeholder="Add notes about this outsider student (e.g., reason for joining, follow-up actions needed, etc.)"
+            sx={{ mt: 1 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseNotesDialog}>Cancel</Button>
+          <Button onClick={handleSaveNotes} variant="contained">
+            Save Notes
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
 
@@ -1149,7 +1348,11 @@ const QuizHost = () => {
 
           {/* NEW: Outsider Panel - Show if there are outsider students */}
           {session?.class_id && outsiders && outsiders.length > 0 && (
-            <OutsiderPanel outsiders={outsiders} />
+            <OutsiderPanel
+              outsiders={outsiders}
+              sessionId={sessionId}
+              onOutsiderUpdate={() => loadRosterData(sessionId)}
+            />
           )}
 
           {/* Leaderboard Card */}
