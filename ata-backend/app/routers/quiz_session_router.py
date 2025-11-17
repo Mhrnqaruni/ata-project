@@ -73,6 +73,20 @@ def create_session(
             timeout_hours=session_data.timeout_hours
         )
 
+        # NEW: Auto-initialize roster if session has class_id
+        if session.class_id:
+            try:
+                roster_entries = quiz_service.sync_class_roster_to_session(
+                    session_id=session.id,
+                    user_id=current_user.id,
+                    db=db
+                )
+                # Log successful roster sync (don't fail session creation if roster sync fails)
+            except Exception as roster_error:
+                # Log error but don't fail session creation
+                import logging
+                logging.warning(f"Failed to initialize roster for session {session.id}: {roster_error}")
+
         # Get quiz details for response
         quiz = db.get_quiz_by_id(session_data.quiz_id, current_user.id)
 
@@ -743,6 +757,230 @@ def get_leaderboard(
         "total_participants": total_participants,
         "updated_at": session.updated_at if hasattr(session, 'updated_at') else session.created_at
     }
+
+
+# ==================== ROSTER TRACKING ENDPOINTS (Authenticated) ====================
+
+@router.get("/{session_id}/attendance", response_model=quiz_model.SessionAttendanceSummary, summary="Get Session Attendance Summary")
+def get_session_attendance(
+    session_id: str,
+    db: DatabaseService = Depends(get_db_service),
+    current_user: UserModel = Depends(get_current_active_user)
+):
+    """
+    Get comprehensive attendance summary for a quiz session.
+
+    Includes:
+    - Roster statistics (if session has class_id)
+    - Outsider students list
+    - Total participant counts
+
+    Path Parameters:
+    - session_id: Session ID
+
+    Returns:
+    - SessionAttendanceSummary with all attendance data
+
+    Raises:
+    - 404: Session not found or access denied
+    """
+    try:
+        attendance_summary = quiz_service.get_session_attendance_summary(
+            session_id=session_id,
+            user_id=current_user.id,
+            db=db
+        )
+        return attendance_summary
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+
+
+@router.get("/{session_id}/roster", response_model=quiz_model.QuizSessionRosterSummary, summary="Get Session Roster")
+def get_session_roster(
+    session_id: str,
+    db: DatabaseService = Depends(get_db_service),
+    current_user: UserModel = Depends(get_current_active_user)
+):
+    """
+    Get roster of expected students for a quiz session.
+
+    Only available for sessions with class_id set.
+
+    Path Parameters:
+    - session_id: Session ID
+
+    Returns:
+    - QuizSessionRosterSummary with roster entries and statistics
+
+    Raises:
+    - 404: Session not found or access denied
+    - 422: Session has no class_id (not class-based)
+    """
+    # Verify session exists and user owns it
+    session = db.get_quiz_session_by_id(session_id, current_user.id)
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Session not found"
+        )
+
+    # Check if session has class_id
+    if not session.class_id:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Session is not associated with a class"
+        )
+
+    # Get roster entries and statistics
+    roster_entries = db.get_roster_by_session(session_id)
+    roster_stats = db.get_roster_attendance_stats(session_id)
+
+    return {
+        **roster_stats,
+        "entries": roster_entries
+    }
+
+
+@router.get("/{session_id}/outsiders", response_model=quiz_model.OutsiderStudentSummary, summary="Get Outsider Students")
+def get_session_outsiders(
+    session_id: str,
+    db: DatabaseService = Depends(get_db_service),
+    current_user: UserModel = Depends(get_current_active_user)
+):
+    """
+    Get list of outsider students who joined but weren't on expected roster.
+
+    Path Parameters:
+    - session_id: Session ID
+
+    Returns:
+    - OutsiderStudentSummary with outsider records
+
+    Raises:
+    - 404: Session not found or access denied
+    """
+    # Verify session exists and user owns it
+    session = db.get_quiz_session_by_id(session_id, current_user.id)
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Session not found"
+        )
+
+    # Get outsider records
+    outsiders = db.get_outsiders_by_session(session_id)
+    outsider_count = db.get_outsider_count(session_id)
+
+    return {
+        "total_outsiders": outsider_count,
+        "records": outsiders
+    }
+
+
+@router.put("/{session_id}/outsiders/{outsider_id}/flag", summary="Flag Outsider Student")
+def flag_outsider_student(
+    session_id: str,
+    outsider_id: str,
+    flag_data: quiz_model.BaseSchema,  # Will contain flagged and notes
+    db: DatabaseService = Depends(get_db_service),
+    current_user: UserModel = Depends(get_current_active_user)
+):
+    """
+    Flag or unflag an outsider student for teacher review.
+
+    Path Parameters:
+    - session_id: Session ID
+    - outsider_id: Outsider record ID
+
+    Request Body:
+    - flagged: Boolean - whether to flag the outsider
+    - teacher_notes: Optional string - notes from teacher
+
+    Returns:
+    - Success message with updated record
+
+    Raises:
+    - 404: Session or outsider not found, or access denied
+    """
+    # Verify session exists and user owns it
+    session = db.get_quiz_session_by_id(session_id, current_user.id)
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Session not found"
+        )
+
+    # Extract flag data from request
+    flagged = flag_data.dict().get("flagged", False)
+    teacher_notes = flag_data.dict().get("teacher_notes", None)
+
+    # Update outsider record
+    updated_outsider = db.flag_outsider_by_teacher(
+        outsider_id=outsider_id,
+        flagged=flagged,
+        teacher_notes=teacher_notes
+    )
+
+    if not updated_outsider:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Outsider record not found"
+        )
+
+    return {
+        "message": "Outsider student flagged successfully" if flagged else "Outsider student unflagged",
+        "outsider": updated_outsider
+    }
+
+
+@router.post("/{session_id}/roster/sync", summary="Sync Roster from Class")
+def sync_session_roster(
+    session_id: str,
+    db: DatabaseService = Depends(get_db_service),
+    current_user: UserModel = Depends(get_current_active_user)
+):
+    """
+    Manually sync roster from class (refresh expected students list).
+
+    Useful if class membership changed after session was created.
+
+    Path Parameters:
+    - session_id: Session ID
+
+    Returns:
+    - Success message with count of roster entries created
+
+    Raises:
+    - 404: Session not found or access denied
+    - 422: Session has no class_id
+    """
+    try:
+        roster_entries = quiz_service.sync_class_roster_to_session(
+            session_id=session_id,
+            user_id=current_user.id,
+            db=db
+        )
+
+        return {
+            "message": "Roster synced successfully",
+            "roster_entries_created": len(roster_entries)
+        }
+
+    except ValueError as e:
+        if "not associated with a class" in str(e):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=str(e)
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=str(e)
+            )
 
 
 # ==================== PARTICIPANT ENDPOINTS (Public/Guest Token) ====================
